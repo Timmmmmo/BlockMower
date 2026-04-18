@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>方块割草 BlockMower V2</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0a1a;color:#e0e0e0;font-family:system-ui,-apple-system,sans-serif;min-height:100vh;display:flex;justify-content:center;align-items:center;overflow:hidden}
+#wrap{position:relative;width:360px;background:#0d0d20;border-radius:16px;border:2px solid #1a1a4a;overflow:hidden;box-shadow:0 0 40px rgba(0,229,255,.15)}
+#hud{display:flex;justify-content:space-around;padding:8px 4px;background:rgba(0,0,0,.5);border-bottom:1px solid #1a1a4a}
+.hi{text-align:center;font-size:.75em}
+.hi .val{color:#FFD700;font-weight:700;font-size:1.1em;display:block}
+.hi .lbl{color:#555;font-size:.85em}
+canvas{display:block;width:100%}
+#controls{display:flex;justify-content:center;gap:6px;padding:8px;background:rgba(0,0,0,.4)}
+.cb{width:56px;height:44px;border:none;border-radius:8px;background:rgba(255,255,255,.07);color:#aaa;font-size:1.2em;cursor:pointer;touch-action:manipulation;transition:background .1s}
+.cb:active,.cb.pressed{background:rgba(0,229,255,.25);color:#00E5FF}
+#overlay{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;background:rgba(0,0,0,.88);z-index:20;border-radius:14px}
+#overlay h1{font-size:2em;background:linear-gradient(135deg,#00E676,#76FF03);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:6px}
+#overlay h2{font-size:1.6em;color:#FF5722;margin-bottom:10px}
+#overlay p{color:#777;font-size:.85em;text-align:center;max-width:260px;line-height:1.6;margin-bottom:4px}
+#overlay .stats{margin:10px 0;color:#aaa;font-size:.9em;text-align:center;line-height:1.8}
+#overlay .stats b{color:#FFD700}
+.btn{padding:11px 28px;border:none;border-radius:10px;background:linear-gradient(135deg,#00E676,#69F0AE);color:#000;font-weight:700;font-size:.95em;cursor:pointer;margin:5px;min-width:120px}
+.btn2{background:rgba(255,255,255,.08);color:#888}
+#combo{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:1.4em;font-weight:700;color:#FFD700;text-shadow:0 0 20px #FFD700;pointer-events:none;opacity:0;transition:opacity .3s;z-index:15}
+#wave-banner{position:absolute;top:40%;left:50%;transform:translate(-50%,-50%);font-size:1.6em;font-weight:700;text-align:center;pointer-events:none;opacity:0;z-index:15;text-shadow:0 0 20px currentColor}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <div id="hud">
+    <div class="hi"><span class="val" id="hs">0</span><span class="lbl">💰得分</span></div>
+    <div class="hi"><span class="val" id="hw">1</span><span class="lbl">⚔️波次</span></div>
+    <div class="hi"><span class="val" id="hk">0</span><span class="lbl">💀击杀</span></div>
+    <div class="hi"><span class="val" id="hc">0</span><span class="lbl">🧱消行</span></div>
+  </div>
+  <canvas id="c"></canvas>
+  <div id="controls">
+    <button class="cb" id="cb-l" onpointerdown="kd('l')" onpointerup="ku('l')" onpointercancel="ku('l')">◀</button>
+    <div style="display:flex;flex-direction:column;gap:4px">
+      <button class="cb" id="cb-u" onpointerdown="kd('u')" onpointerup="ku('u')" onpointercancel="ku('u')">▲</button>
+      <button class="cb" id="cb-d" onpointerdown="kd('d')" onpointerup="ku('d')" onpointercancel="ku('d')">▼</button>
+    </div>
+    <button class="cb" id="cb-r" onpointerdown="kd('r')" onpointerup="ku('r')" onpointercancel="ku('r')">▶</button>
+  </div>
+  <div id="overlay">
+    <h1>🌿 方块割草</h1>
+    <p>俄罗斯方块从天降，堆成地形<br>操控🚜在草地割草，消灭👾怪物<br><b style="color:#00E676">割完整行草 = 消除方块！</b></p>
+    <button class="btn" onclick="startGame()">▶ 开始游戏</button>
+  </div>
+  <div id="combo"></div>
+  <div id="wave-banner"></div>
+</div>
+
+<script>
+const COLS=10,ROWS=18,CELL=34;
+const GRASS_START=12; // rows 12-17 are grass zone
+const canvas=document.getElementById('c');
+canvas.width=COLS*CELL; canvas.height=ROWS*CELL;
+const ctx=canvas.getContext('2d');
+
+// Input
+const keys={l:false,r:false,u:false,d:false};
+function kd(k){keys[k]=true;document.getElementById('cb-'+k).classList.add('pressed');}
+function ku(k){keys[k]=false;document.getElementById('cb-'+k).classList.remove('pressed');}
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowLeft')kd('l');if(e.key==='ArrowRight')kd('r');
+  if(e.key==='ArrowUp')kd('u');if(e.key==='ArrowDown')kd('d');
+});
+document.addEventListener('keyup',e=>{
+  if(e.key==='ArrowLeft')ku('l');if(e.key==='ArrowRight')ku('r');
+  if(e.key==='ArrowUp')ku('u');if(e.key==='ArrowDown')ku('d');
+});
+
+// Grid values: 0=empty sky, 1=block, 2=grass, 3=mowed
+let grid,fallingBlock,player,enemies,particles;
+let score,kills,wave,clearedLines,gameState,lastTime;
+let dropTimer,moveTimer,enemyTimer,waveTimer;
+let comboCount=0,comboTimer=0;
+
+const SHAPES=[
+  {s:[[1,1,1,1]],c:'#00E5FF'},
+  {s:[[1,1],[1,1]],c:'#FFD740'},
+  {s:[[0,1,0],[1,1,1]],c:'#E040FB'},
+  {s:[[1,0,0],[1,1,1]],c:'#FF5722'},
+  {s:[[0,0,1],[1,1,1]],c:'#69F0AE'},
+  {s:[[1,1,0],[0,1,1]],c:'#FF6E40'},
+  {s:[[0,1,1],[1,1,0]],c:'#448AFF'}
+];
+
+function initGrid(){
+  grid=[];
+  for(let y=0;y<ROWS;y++){
+    grid[y]=[];
+    for(let x=0;x<COLS;x++){
+      grid[y][x]=y>=GRASS_START?2:0;
+    }
+  }
+}
+
+function newBlock(){
+  const t=SHAPES[Math.floor(Math.random()*SHAPES.length)];
+  return{shape:t.s.map(r=>[...r]),color:t.c,x:Math.floor((COLS-t.s[0].length)/2),y:-1};
+}
+
+function blockCollides(b,ox=0,oy=0){
+  for(let r=0;r<b.shape.length;r++){
+    for(let c=0;c<b.shape[r].length;c++){
+      if(!b.shape[r][c])continue;
+      const nx=b.x+c+ox,ny=b.y+r+oy;
+      if(nx<0||nx>=COLS||ny>=ROWS)return true;
+      if(ny>=0&&grid[ny][nx]===1)return true;
+    }
+  }
+  return false;
+}
+
+function placeBlock(){
+  for(let r=0;r<fallingBlock.shape.length;r++){
+    for(let c=0;c<fallingBlock.shape[r].length;c++){
+      if(!fallingBlock.shape[r][c])continue;
+      const ny=fallingBlock.y+r,nx=fallingBlock.x+c;
+      if(ny>=0&&ny<ROWS)grid[ny][nx]=1;
+    }
+  }
+  checkBlockLines();
+  fallingBlock=newBlock();
+  if(blockCollides(fallingBlock)){endGame();return;}
+}
+
+function checkBlockLines(){
+  // Clear full rows of blocks (standard tetris)
+  let cleared=0;
+  for(let y=ROWS-1;y>=0;y--){
+    if(grid[y].every(v=>v===1)){
+      spawnLineParticles(y,'#FFD740');
+      grid.splice(y,1);
+      grid.unshift(new Array(COLS).fill(0));
+      cleared++;y++;clearedLines++;
+    }
+  }
+  if(cleared>0){score+=cleared*200;showCombo('方块消除 +'+cleared*200);}
+}
+
+function checkGrassLines(){
+  // If entire grass row is mowed (3), remove it and push blocks down
+  let cleared=0;
+  for(let y=ROWS-1;y>=GRASS_START;y--){
+    if(grid[y].every(v=>v===3||v===1)){
+      // Count mowed cells
+      const mowedCount=grid[y].filter(v=>v===3).length;
+      if(mowedCount>=COLS-1){ // almost full row mowed
+        spawnLineParticles(y,'#00E676');
+        grid.splice(y,1);
+        grid.unshift(new Array(COLS).fill(0));
+        cleared++;y++;clearedLines++;
+        score+=300;
+      }
+    }
+  }
+  if(cleared>0)showCombo('割草消行 +'+cleared*300);
+}
+
+function spawnLineParticles(y,color){
+  for(let x=0;x<COLS;x++){
+    for(let i=0;i<3;i++){
+      particles.push({
+        x:(x+.5)*CELL,y:(y+.5)*CELL,
+        vx:(Math.random()-.5)*4,vy:(Math.random()-1)*5,
+        life:1,color,size:4+Math.random()*4
+      });
+    }
+  }
+}
+
+function showCombo(text){
+  const el=document.getElementById('combo');
+  el.textContent=text;el.style.opacity='1';
+  clearTimeout(el._t);el._t=setTimeout(()=>el.style.opacity='0',800);
+}
+
+function showWaveBanner(text,color){
+  const el=document.getElementById('wave-banner');
+  el.textContent=text;el.style.color=color;el.style.opacity='1';
+  clearTimeout(el._t);el._t=setTimeout(()=>el.style.opacity='0',1500);
+}
+
+function spawnEnemy(){
+  // Enemies spawn at top of grass zone
+  const ex=Math.floor(Math.random()*COLS);
+  let ey=GRASS_START;
+  // Find first walkable cell in that column
+  for(let y=GRASS_START;y<ROWS;y++){
+    if(grid[y][ex]!==1){ey=y;break;}
+  }
+  const hp=1+Math.floor(wave/2);
+  enemies.push({x:ex,y:ey,hp,maxHp:hp,moveTimer:0,speed:Math.min(1.5,0.5+wave*0.1)});
+}
+
+function moveEnemies(dt){
+  enemies.forEach(e=>{
+    e.moveTimer+=dt;
+    const interval=400/e.speed;
+    if(e.moveTimer<interval)return;
+    e.moveTimer=0;
+    // Simple pathfinding: prefer moving toward player, avoid blocks
+    const dx=player.x-e.x,dy=player.y-e.y;
+    const moves=[];
+    if(dx!==0)moves.push({x:Math.sign(dx),y:0});
+    if(dy!==0)moves.push({x:0,y:Math.sign(dy)});
+    // Try primary move first
+    let moved=false;
+    for(const m of moves){
+      const nx=e.x+m.x,ny=e.y+m.y;
+      if(nx>=0&&nx<COLS&&ny>=0&&ny<ROWS&&grid[ny][nx]!==1){
+        e.x=nx;e.y=ny;moved=true;break;
+      }
+    }
+    if(!moved){
+      // Try random adjacent
+      const dirs=[{x:1,y:0},{x:-1,y:0},{x:0,y:1},{x:0,y:-1}];
+      dirs.sort(()=>Math.random()-.5);
+      for(const m of dirs){
+        const nx=e.x+m.x,ny=e.y+m.y;
+        if(nx>=0&&nx<COLS&&ny>=0&&ny<ROWS&&grid[ny][nx]!==1){
+          e.x=nx;e.y=ny;break;
+        }
+      }
+    }
+  });
+}
+
+function startGame(){
+  initGrid();
+  fallingBlock=newBlock();
+  player={x:5,y:ROWS-2};
+  enemies=[];particles=[];
+  score=0;kills=0;wave=1;clearedLines=0;
+  dropTimer=0;moveTimer=0;enemyTimer=0;waveTimer=0;
+  gameState='playing';
+  document.getElementById('overlay').style.display='none';
+  updateHUD();
+  lastTime=performance.now();
+  requestAnimationFrame(loop);
+}
+
+function endGame(){
+  gameState='over';
+  const ol=document.getElementById('overlay');
+  ol.innerHTML=`<h2>💀 游戏结束</h2>
+    <div class="stats">得分 <b>${score}</b><br>击杀 <b>${kills}</b><br>波次 <b>${wave}</b><br>消行 <b>${clearedLines}</b></div>
+    <button class="btn" onclick="startGame()">🔄 再来</button>
+    <button class="btn btn2" onclick="showMenu()">🏠 菜单</button>`;
+  ol.style.display='flex';
+}
+
+function showMenu(){
+  gameState='menu';
+  const ol=document.getElementById('overlay');
+  ol.innerHTML=`<h1>🌿 方块割草</h1>
+    <p>俄罗斯方块从天降，堆成地形<br>操控🚜在草地割草，消灭👾怪物<br><b style="color:#00E676">割完整行草 = 消除方块！</b></p>
+    <button class="btn" onclick="startGame()">▶ 开始游戏</button>`;
+  ol.style.display='flex';
+}
+
+function updateHUD(){
+  document.getElementById('hs').textContent=score;
+  document.getElementById('hw').textContent=wave;
+  document.getElementById('hk').textContent=kills;
+  document.getElementById('hc').textContent=clearedLines;
+}
+
+function update(dt){
+  if(gameState!=='playing')return;
+
+  // Drop block
+  dropTimer+=dt;
+  const dropInterval=Math.max(600,2000-wave*100);
+  if(dropTimer>=dropInterval){
+    dropTimer=0;
+    if(!blockCollides(fallingBlock,0,1)){fallingBlock.y++;}
+    else{placeBlock();}
+  }
+
+  // Move player
+  moveTimer+=dt;
+  const moveInterval=Math.max(80,130-wave*3);
+  if(moveTimer>=moveInterval){
+    moveTimer=0;
+    let nx=player.x,ny=player.y;
+    if(keys.l)nx--;
+    if(keys.r)nx++;
+    if(keys.u)ny--;
+    if(keys.d)ny++;
+    if(nx>=0&&nx<COLS&&ny>=0&&ny<ROWS&&grid[ny][nx]!==1){
+      player.x=nx;player.y=ny;
+    }
+    // Mow grass
+    if(grid[player.y][player.x]===2){
+      grid[player.y][player.x]=3;
+      score+=10;
+      checkGrassLines();
+    }
+  }
+
+  // Spawn enemies
+  enemyTimer+=dt;
+  const spawnInterval=Math.max(600,2500-wave*150);
+  if(enemyTimer>=spawnInterval){
+    enemyTimer=0;
+    const count=Math.min(3,1+Math.floor(wave/3));
+    for(let i=0;i<count;i++)spawnEnemy();
+  }
+
+  // Wave progression
+  waveTimer+=dt;
+  if(waveTimer>=15000){
+    waveTimer=0;wave++;
+    showWaveBanner('⚔️ 第'+wave+'波！','#FF5722');
+    updateHUD();
+  }
+
+  // Move enemies
+  moveEnemies(dt);
+
+  // Check enemy-player collision
+  for(const e of enemies){
+    if(e.x===player.x&&e.y===player.y){endGame();return;}
+  }
+
+  // Player attacks enemies on same cell (mow = damage)
+  enemies=enemies.filter(e=>{
+    if(e.x===player.x&&e.y===player.y){
+      e.hp--;
+      if(e.hp<=0){kills++;score+=50+wave*10;return false;}
+    }
+    return true;
+  });
+
+  // Update particles
+  particles=particles.filter(p=>{
+    p.x+=p.vx;p.y+=p.vy;p.vy+=0.2;p.life-=0.04;
+    return p.life>0;
+  });
+
+  updateHUD();
+}
+
+function draw(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  // Sky gradient
+  const sky=ctx.createLinearGradient(0,0,0,GRASS_START*CELL);
+  sky.addColorStop(0,'#050510');sky.addColorStop(1,'#0a0a20');
+  ctx.fillStyle=sky;ctx.fillRect(0,0,canvas.width,GRASS_START*CELL);
+
+  // Grid
+  for(let y=0;y<ROWS;y++){
+    for(let x=0;x<COLS;x++){
+      const v=grid[y][x];
+      if(v===0)continue;
+      if(v===1){
+        ctx.fillStyle='#1e1e4a';
+        ctx.fillRect(x*CELL,y*CELL,CELL-1,CELL-1);
+        ctx.fillStyle='#2a2a6a';
+        ctx.fillRect(x*CELL,y*CELL,CELL-1,3);
+        ctx.fillRect(x*CELL,y*CELL,3,CELL-1);
+      } else if(v===2){
+        ctx.fillStyle='#1a4a1a';
+        ctx.fillRect(x*CELL,y*CELL,CELL-1,CELL-1);
+        // Grass tufts
+        ctx.fillStyle='#2E7D32';
+        ctx.fillRect(x*CELL+4,y*CELL+CELL-8,3,6);
+        ctx.fillRect(x*CELL+10,y*CELL+CELL-10,3,8);
+        ctx.fillRect(x*CELL+18,y*CELL+CELL-7,3,5);
+        ctx.fillRect(x*CELL+25,y*CELL+CELL-9,3,7);
+      } else if(v===3){
+        ctx.fillStyle='#0d2e0d';
+        ctx.fillRect(x*CELL,y*CELL,CELL-1,CELL-1);
+        // Mow lines
+        ctx.strokeStyle='#1a4a1a';ctx.lineWidth=1;
+        ctx.beginPath();ctx.moveTo(x*CELL,y*CELL+8);ctx.lineTo(x*CELL+CELL-1,y*CELL+8);ctx.stroke();
+        ctx.beginPath();ctx.moveTo(x*CELL,y*CELL+18);ctx.lineTo(x*CELL+CELL-1,y*CELL+18);ctx.stroke();
+        ctx.beginPath();ctx.moveTo(x*CELL,y*CELL+28);ctx.lineTo(x*CELL+CELL-1,y*CELL+28);ctx.stroke();
+      }
+    }
+  }
+
+  // Grass zone separator
+  ctx.strokeStyle='rgba(0,230,118,.3)';ctx.lineWidth=1;
+  ctx.setLineDash([4,4]);
+  ctx.beginPath();ctx.moveTo(0,GRASS_START*CELL);ctx.lineTo(canvas.width,GRASS_START*CELL);ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Falling block
+  if(fallingBlock){
+    for(let r=0;r<fallingBlock.shape.length;r++){
+      for(let c=0;c<fallingBlock.shape[r].length;c++){
+        if(!fallingBlock.shape[r][c])continue;
+        const px=(fallingBlock.x+c)*CELL,py=(fallingBlock.y+r)*CELL;
+        if(py<0)continue;
+        ctx.fillStyle=fallingBlock.color;
+        ctx.fillRect(px,py,CELL-1,CELL-1);
+        ctx.fillStyle='rgba(255,255,255,.3)';
+        ctx.fillRect(px,py,CELL-1,3);ctx.fillRect(px,py,3,CELL-1);
+        ctx.fillStyle='rgba(0,0,0,.3)';
+        ctx.fillRect(px,py+CELL-4,CELL-1,3);ctx.fillRect(px+CELL-4,py,3,CELL-1);
+      }
+    }
+    // Ghost piece
+    let ghostY=fallingBlock.y;
+    while(!blockCollides({...fallingBlock,y:ghostY+1}))ghostY++;
+    if(ghostY>fallingBlock.y){
+      ctx.globalAlpha=0.2;
+      for(let r=0;r<fallingBlock.shape.length;r++){
+        for(let c=0;c<fallingBlock.shape[r].length;c++){
+          if(!fallingBlock.shape[r][c])continue;
+          const px=(fallingBlock.x+c)*CELL,py=(ghostY+r)*CELL;
+          if(py<0)continue;
+          ctx.fillStyle=fallingBlock.color;
+          ctx.fillRect(px,py,CELL-1,CELL-1);
+        }
+      }
+      ctx.globalAlpha=1;
+    }
+  }
+
+  // Enemies
+  enemies.forEach(e=>{
+    const cx=e.x*CELL+CELL/2,cy=e.y*CELL+CELL/2,r=CELL/2-3;
+    ctx.fillStyle='#b71c1c';
+    ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#ff1744';
+    ctx.beginPath();ctx.arc(cx,cy,r-2,0,Math.PI*2);ctx.fill();
+    ctx.font='16px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText('👾',cx,cy);
+    // HP bar
+    if(e.maxHp>1){
+      const bw=CELL-4,bh=3,bx=e.x*CELL+2,by=e.y*CELL-5;
+      ctx.fillStyle='#333';ctx.fillRect(bx,by,bw,bh);
+      ctx.fillStyle='#f44336';ctx.fillRect(bx,by,bw*(e.hp/e.maxHp),bh);
+    }
+  });
+
+  // Player
+  const px=player.x*CELL+CELL/2,py=player.y*CELL+CELL/2;
+  ctx.fillStyle='#00c853';
+  ctx.beginPath();ctx.arc(px,py,CELL/2-2,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#69f0ae';
+  ctx.beginPath();ctx.arc(px,py,CELL/2-4,0,Math.PI*2);ctx.fill();
+  ctx.font='18px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText('🚜',px,py);
+
+  // Particles
+  particles.forEach(p=>{
+    ctx.globalAlpha=p.life;
+    ctx.fillStyle=p.color;
+    ctx.fillRect(p.x-p.size/2,p.y-p.size/2,p.size,p.size);
+  });
+  ctx.globalAlpha=1;
+}
+
+function loop(t){
+  if(gameState!=='playing')return;
+  const dt=Math.min(t-lastTime,50);lastTime=t;
+  update(dt);draw();
+  requestAnimationFrame(loop);
+}
+</script>
+</body>
+</html>
