@@ -48,14 +48,18 @@ canvas{display:block;width:100%;touch-action:none}
     <h1>🔫 2048射手</h1>
     <p>合并数字获得武器<br>数字越大，武器越强！<br>消灭僵尸，存活下去！</p>
     <div class="controls">
-      <p>🎮 <b>移动</b>：拖动屏幕 或 方向键</p>
-      <p>🔢 <b>合并</b>：相同数字相碰会合并</p>
-      <p>🔫 <b>射击</b>：自动发射当前最高武器</p>
-      <p>🌊 <b>波次</b>：每波僵尸更多更强</p>
+      <p>🎮 <b>滑动合并</b>：像玩2048一样滑动屏幕！</p>
+      <p style="color:#ff6b6b;font-size:.85em">← 左滑 | 右滑 → | 上滑 ↑ | 下滑 ↓</p>
+      <p>🔢 <b>合并规则</b>：相同数字滑动相碰 = 合并成两倍！</p>
+      <p>🔫 <b>射击</b>：当前最高数字的武器自动发射！</p>
+      <p>🌊 <b>波次</b>：坚持越久，僵尸越多！</p>
     </div>
-    <button class="btn" onclick="startGame()">▶ 开始战斗</button>
+    <div style="display:flex;gap:10px;margin-top:10px">
+      <button class="btn" onclick="startGame()">▶ 开始战斗</button>
+    </div>
   </div>
   <div id="kill-banner"></div>
+  <div id="hint-arrows" style="position:absolute;inset:0;pointer-events:none;opacity:0;z-index:10;transition:opacity .3s"></div>
 </div>
 
 <script>
@@ -285,63 +289,84 @@ function onPointerMove(e){
 }
 
 function moveAll(dx,dy){
-  if(dx!==0){
-    for(let y=0;y<ROWS;y++){
-      for(let x=dx>0?COLS-1:0;dx>0?x>=0:x<COLS;x+=dx>0?-1:1){
-        if(grid[y][x]===0)continue;
-        let tx=x;
-        while(true){
-          const nx=tx+dx;
-          if(nx<0||nx>=COLS)break;
-          if(grid[y][nx]===0){tx=nx;}
-          else if(grid[y][nx]===grid[y][x]){tx=nx;break;}
-          else break;
-        }
-        if(tx!==x){
-          if(grid[y][tx]===grid[y][x]){
-            grid[y][tx]=grid[y][x]*2;
-            const newVal=grid[y][tx];
-            if(newVal>highestTile)highestTile=newVal;
-            score+=newVal;
-            spawnMergeParticles(tx,y,newVal);
-          }else{
-            grid[y][tx]=grid[y][x];
+  if(dx!==0||dy!==0){
+    let moved=false;
+    if(dx!==0){
+      for(let y=0;y<ROWS;y++){
+        for(let x=dx>0?COLS-1:0;dx>0?x>=0:x<COLS;x+=dx>0?-1:1){
+          if(grid[y][x]===0)continue;
+          let tx=x;
+          while(true){
+            const nx=tx+dx;
+            if(nx<0||nx>=COLS)break;
+            if(grid[y][nx]===0){tx=nx;}
+            else if(grid[y][nx]===grid[y][x]){tx=nx;break;}
+            else break;
           }
-          grid[y][x]=0;
+          if(tx!==x){
+            moved=true;
+            if(grid[y][tx]===grid[y][x]){
+              grid[y][tx]=grid[y][x]*2;
+              const newVal=grid[y][tx];
+              if(newVal>highestTile)highestTile=newVal;
+              score+=newVal;
+              spawnMergeParticles(tx,y,newVal);
+              showMergeHint(dx,dy,newVal);
+            }else{
+              grid[y][tx]=grid[y][x];
+            }
+            grid[y][x]=0;
+          }
+        }
+      }
+    }else if(dy!==0){
+      for(let x=0;x<COLS;x++){
+        for(let y=dy>0?ROWS-1:0;dy>0?y>=0:y<ROWS;y+=dy>0?-1:1){
+          if(grid[y][x]===0)continue;
+          let ty=y;
+          while(true){
+            const ny=ty+dy;
+            if(ny<0||ny>=ROWS)break;
+            if(grid[ny][x]===0){ty=ny;}
+            else if(grid[ny][x]===grid[y][x]){ty=ny;break;}
+            else break;
+          }
+          if(ty!==y){
+            moved=true;
+            if(grid[ty][x]===grid[y][x]){
+              grid[ty][x]=grid[y][x]*2;
+              const newVal=grid[ty][x];
+              if(newVal>highestTile)highestTile=newVal;
+              score+=newVal;
+              spawnMergeParticles(x,ty,newVal);
+              showMergeHint(dx,dy,newVal);
+            }else{
+              grid[ty][x]=grid[y][x];
+            }
+            grid[y][x]=0;
+          }
         }
       }
     }
-    addRandomTile();
-    updateWeapons();
-  }else if(dy!==0){
-    for(let x=0;x<COLS;x++){
-      for(let y=dy>0?ROWS-1:0;dy>0?y>=0:y<ROWS;y+=dy>0?-1:1){
-        if(grid[y][x]===0)continue;
-        let ty=y;
-        while(true){
-          const ny=ty+dy;
-          if(ny<0||ny>=ROWS)break;
-          if(grid[ny][x]===0){ty=ny;}
-          else if(grid[ny][x]===grid[y][x]){ty=ny;break;}
-          else break;
-        }
-        if(ty!==y){
-          if(grid[ty][x]===grid[y][x]){
-            grid[ty][x]=grid[y][x]*2;
-            const newVal=grid[ty][x];
-            if(newVal>highestTile)highestTile=newVal;
-            score+=newVal;
-            spawnMergeParticles(x,ty,newVal);
-          }else{
-            grid[ty][x]=grid[y][x];
-          }
-          grid[y][x]=0;
-        }
-      }
-    }
-    addRandomTile();
+    if(moved)addRandomTile();else showNoMoveHint();
     updateWeapons();
   }
+}
+
+function showMergeHint(dx,dy,val){
+  const arrows={'-1,0':'← 向左合并','1,0':'→ 向右合并','0,-1':'↑ 向上合并','0,1':'↓ 向下合并'};
+  const key=dx+','+dy;
+  const hint=document.getElementById('hint-arrows');
+  hint.innerHTML='<div style="position:absolute;font-size:1.2em;color:#00E676;font-weight:bold;left:50%;top:50%;transform:translate(-50%,-50%);text-shadow:0 0 10px #00E676">'+arrows[key]+' 升级到 '+val+'！</div>';
+  hint.style.opacity='1';
+  clearTimeout(hint._t);hint._t=setTimeout(()=>{hint.style.opacity='0';},800);
+}
+
+function showNoMoveHint(){
+  const hint=document.getElementById('hint-arrows');
+  hint.innerHTML='<div style="position:absolute;font-size:.9em;color:#ff6b6b;left:50%;bottom:120px;transform:translateX(-50%);text-align:center;text-shadow:0 0 5px #ff6b6b">试试其他方向滑动！</div>';
+  hint.style.opacity='1';
+  clearTimeout(hint._t);hint._t=setTimeout(()=>{hint.style.opacity='0';},1000);
 }
 
 document.addEventListener('pointerup',()=>isDragging=false);
