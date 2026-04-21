@@ -7,187 +7,64 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{height:100%;overflow:hidden}
-body{
-  background:#060612;
-  color:#e0e0e0;
-  font-family:system-ui,-apple-system,sans-serif;
-  display:flex;justify-content:center;align-items:center;
-  user-select:none;
-}
-#app{
-  position:relative;
-  width:min(100vw,420px);
-  height:min(100vh,860px);
-  display:flex;
-  flex-direction:column;
-  background:#08081a;
-  border-radius:0;
-  overflow:hidden;
-}
+body{background:#060612;color:#e0e0e0;font-family:system-ui,-apple-system,sans-serif;display:flex;justify-content:center;align-items:center;user-select:none}
+#app{position:relative;width:min(100vw,420px);height:min(100vh,860px);display:flex;flex-direction:column;background:#08081a;border-radius:0;overflow:hidden}
 /* ── HUD ── */
-#hud{
-  flex:0 0 auto;
-  display:flex;justify-content:space-around;align-items:center;
-  padding:8px 6px 6px;
-  background:linear-gradient(180deg,#12122e,#08081a);
-  border-bottom:1px solid #1e1e4a;
-  z-index:5;
-}
+#hud{flex:0 0 auto;display:flex;justify-content:space-around;align-items:center;padding:8px 6px 4px;background:linear-gradient(180deg,#12122e,#08081a);border-bottom:1px solid #1e1e4a;z-index:5}
 .hi{text-align:center}
-.hi .val{color:#FFD700;font-weight:800;font-size:1.1em;display:block;text-shadow:0 0 8px rgba(255,215,0,.6)}
-.hi .lbl{color:#555;font-size:.7em;letter-spacing:.5px}
-#hp-bar-wrap{flex:0 0 auto;padding:0 10px 4px;background:#08081a}
-#hp-bar-bg{height:6px;background:#1a1a3a;border-radius:3px;overflow:hidden}
-#hp-bar{height:100%;width:100%;background:linear-gradient(90deg,#00e676,#69f0ae);border-radius:3px;transition:width .2s,background .3s}
-
+.hi .val{color:#FFD700;font-weight:800;font-size:1.05em;display:block;text-shadow:0 0 8px rgba(255,215,0,.5)}
+.hi .lbl{color:#555;font-size:.68em;letter-spacing:.5px}
+/* ── 弹药条 ── */
+#ammo-wrap{flex:0 0 auto;padding:0 10px 4px;background:#08081a;transition:background .3s}
+#ammo-bg{height:5px;background:#1a1a3a;border-radius:3px;overflow:hidden}
+#ammo-fill{height:100%;width:100%;background:linear-gradient(90deg,#00e676,#69f0ae);border-radius:3px;transition:width .1s,background .3s}
+#ammo-wrap.low #ammo-bg{animation:ammoPulse .5s infinite}
+@keyframes ammoPulse{0%,100%{box-shadow:0 0 0 rgba(255,82,82,0)}50%{box-shadow:0 0 8px rgba(255,82,82,.6)}}
+#ammo-wrap.danger{background:rgba(255,0,0,.08)}
 /* ── 战斗区 ── */
-#battle-wrap{
-  flex:1 1 0;
-  position:relative;
-  overflow:hidden;
-  min-height:0;
-}
-#battle-canvas{
-  display:block;
-  width:100%;height:100%;
-}
-/* 战斗区顶部渐变遮罩（增加深度感） */
-#battle-wrap::before{
-  content:'';
-  position:absolute;top:0;left:0;right:0;height:40px;
-  background:linear-gradient(180deg,rgba(8,8,26,.8),transparent);
-  pointer-events:none;z-index:2;
-}
-#battle-wrap::after{
-  content:'';
-  position:absolute;bottom:0;left:0;right:0;height:40px;
-  background:linear-gradient(0deg,rgba(8,8,26,.9),transparent);
-  pointer-events:none;z-index:2;
-}
-
-/* ── 武器进度条 ── */
-#weapon-bar{
-  flex:0 0 auto;
-  padding:6px 10px;
-  background:linear-gradient(180deg,#08081a,#0e0e28);
-  border-top:1px solid #1e1e4a;
-  border-bottom:1px solid #1e1e4a;
-}
-#weapon-label{font-size:.7em;color:#888;margin-bottom:4px;text-align:center}
-#weapons{
-  display:flex;justify-content:space-between;align-items:center;
-  gap:2px;
-}
-.wp{
-  flex:1;text-align:center;
-  font-size:1.3em;
-  opacity:.2;
-  transition:all .3s ease;
-  padding:3px 0;
-  border-radius:6px;
-  position:relative;
-}
-.wp.active{
-  opacity:1;
-  filter:drop-shadow(0 0 10px currentColor);
-  background:rgba(255,255,255,.08);
-}
-.wp.current{
-  opacity:1;
-  transform:scale(1.4);
-  filter:drop-shadow(0 0 16px currentColor);
-  background:rgba(255,255,255,.15);
-}
-.wp .wp-name{
-  display:none;
-  position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);
-  font-size:.5em;color:#aaa;white-space:nowrap;
-}
+#battle-wrap{flex:1 1 0;position:relative;overflow:hidden;min-height:0}
+#battle-canvas{display:block;width:100%;height:100%}
+#battle-wrap::before{content:'';position:absolute;top:0;left:0;right:0;height:40px;background:linear-gradient(180deg,rgba(8,8,26,.9),transparent);pointer-events:none;z-index:2}
+#battle-wrap::after{content:'';position:absolute;bottom:0;left:0;right:0;height:60px;background:linear-gradient(0deg,rgba(8,8,26,.95),transparent);pointer-events:none;z-index:2}
+/* ── 武器条 ── */
+#weapon-bar{flex:0 0 auto;padding:5px 10px;background:linear-gradient(180deg,#08081a,#0e0e28);border-top:1px solid #1e1e4a;border-bottom:1px solid #1e1e4a}
+#weapon-label{font-size:.68em;color:#888;margin-bottom:4px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#weapons{display:flex;justify-content:space-between;gap:1px}
+.wp{flex:1;text-align:center;font-size:1.2em;opacity:.2;padding:2px 0;border-radius:6px;transition:all .3s ease;position:relative}
+.wp.active{opacity:.7;filter:drop-shadow(0 0 6px currentColor)}
+.wp.current{opacity:1;transform:scale(1.35);filter:drop-shadow(0 0 14px currentColor);background:rgba(255,255,255,.12)}
+.wp .wp-name{position:absolute;bottom:-16px;left:50%;transform:translateX(-50%);font-size:.5em;color:#aaa;white-space:nowrap;display:none}
 .wp.current .wp-name{display:block}
-
 /* ── 合并区 ── */
-#merge-wrap{
-  flex:0 0 auto;
-  position:relative;
-  background:linear-gradient(180deg,#0e0e28,#0a0a1e);
-  touch-action:none;
-}
-#merge-canvas{
-  display:block;
-  width:100%;
-}
-#merge-hint{
-  position:absolute;bottom:6px;left:50%;transform:translateX(-50%);
-  font-size:.65em;color:#444;white-space:nowrap;pointer-events:none;
-}
-
+#merge-wrap{flex:0 0 auto;position:relative;background:linear-gradient(180deg,#0e0e28,#0a0a1e);touch-action:none}
+#merge-canvas{display:block;width:100%}
+#merge-hint{position:absolute;bottom:5px;left:50%;transform:translateX(-50%);font-size:.62em;color:#333;white-space:nowrap;pointer-events:none}
+/* ── 暂停按钮 ── */
+#pause-btn{position:absolute;top:8px;right:8px;width:30px;height:30px;border-radius:50%;background:rgba(0,0,0,.5);border:1px solid #2a2a5a;color:#888;font-size:13px;cursor:pointer;z-index:10;display:none;transition:all .2s}
+#pause-btn:hover{color:#fff;border-color:#ff6b6b}
 /* ── 覆盖层 ── */
-#overlay{
-  position:absolute;inset:0;
-  display:flex;flex-direction:column;justify-content:center;align-items:center;
-  background:rgba(4,4,16,.95);
-  z-index:30;
-  padding:20px;
-}
-#overlay h1{
-  font-size:2.2em;font-weight:900;
-  background:linear-gradient(135deg,#ff6b6b,#ffd93d,#ff6b6b);
-  background-size:200%;
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-  margin-bottom:6px;
-  animation:shimmer 2s infinite;
-}
-@keyframes shimmer{0%{background-position:0%}100%{background-position:200%}}
-#overlay .sub{color:#666;font-size:.85em;margin-bottom:16px;text-align:center}
-.card{
-  background:rgba(20,20,50,.9);
-  border:1px solid #2a2a5a;
-  border-radius:14px;
-  padding:14px 18px;
-  margin:8px 0;
-  width:100%;max-width:320px;
-}
-.card-title{color:#ffd700;font-size:.8em;font-weight:700;margin-bottom:8px;letter-spacing:1px}
-.card p{font-size:.78em;color:#bbb;line-height:1.8;margin:2px 0}
+#overlay{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;background:rgba(4,4,16,.96);z-index:30;padding:20px;overflow-y:auto}
+#overlay h1{font-size:2em;font-weight:900;background:linear-gradient(135deg,#ff6b6b,#ffd93d);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:4px}
+#overlay .sub{color:#666;font-size:.82em;margin-bottom:14px;text-align:center}
+.card{background:rgba(20,20,50,.9);border:1px solid #2a2a5a;border-radius:12px;padding:12px 16px;margin:6px 0;width:100%;max-width:300px}
+.card-title{color:#ffd700;font-size:.75em;font-weight:700;margin-bottom:6px;letter-spacing:1px}
+.card p{font-size:.76em;color:#bbb;line-height:1.7;margin:2px 0}
 .card p b{color:#fff}
 .card p span{color:#00e676}
-.btn{
-  margin-top:16px;
-  padding:14px 48px;
-  border:none;border-radius:14px;
-  background:linear-gradient(135deg,#ff6b6b,#ff8e53);
-  color:#fff;font-weight:800;font-size:1.1em;
-  cursor:pointer;
-  box-shadow:0 6px 30px rgba(255,107,107,.5);
-  transition:transform .15s,box-shadow .15s;
-  letter-spacing:.5px;
-}
+.card p span.red{color:#ff5252}
+.btn{margin-top:14px;padding:13px 44px;border:none;border-radius:14px;background:linear-gradient(135deg,#ff6b6b,#ff8e53);color:#fff;font-weight:800;font-size:1.05em;cursor:pointer;box-shadow:0 5px 25px rgba(255,107,107,.5);transition:transform .15s,box-shadow .15s;letter-spacing:.5px}
 .btn:active{transform:scale(.95);box-shadow:0 2px 10px rgba(255,107,107,.3)}
-
 /* ── 击杀横幅 ── */
-#kill-banner{
-  position:absolute;top:30%;left:50%;transform:translate(-50%,-50%);
-  font-size:1.8em;font-weight:800;
-  color:#ff6b6b;text-shadow:0 0 30px #ff6b6b,0 0 60px rgba(255,107,107,.4);
-  pointer-events:none;opacity:0;z-index:20;
-  transition:opacity .3s;
-  white-space:nowrap;
-}
-/* ── 暂停按钮 ── */
-#pause-btn{
-  position:absolute;top:8px;right:8px;
-  width:32px;height:32px;border-radius:50%;
-  background:rgba(0,0,0,.5);border:1px solid #2a2a5a;
-  color:#888;font-size:14px;cursor:pointer;z-index:10;
-  display:none;transition:all .2s;
-}
-#pause-btn:hover{color:#fff;border-color:#ff6b6b}
+#kill-banner{position:absolute;top:28%;left:50%;transform:translate(-50%,-50%);font-size:1.7em;font-weight:800;color:#ff6b6b;text-shadow:0 0 30px #ff6b6b,0 0 60px rgba(255,107,107,.3);pointer-events:none;opacity:0;z-index:20;white-space:nowrap;transition:opacity .3s}
+/* ── 弹药警告 ── */
+#noammo-hint{position:absolute;bottom:70px;left:50%;transform:translateX(-50%);font-size:.75em;color:#ff5252;font-weight:700;background:rgba(255,0,0,.15);padding:4px 12px;border-radius:12px;pointer-events:none;opacity:0;transition:opacity .3s;z-index:5;white-space:nowrap}
+#noammo-hint.show{opacity:1;animation:noAmmoShake .3s}
+@keyframes noAmmoShake{0%,100%{transform:translateX(-50%)}25%{transform:translateX(calc(-50% - 4px))}75%{transform:translateX(calc(-50% + 4px))}}
 </style>
 </head>
 <body>
 <div id="app">
 
-  <!-- HUD -->
   <div id="hud">
     <div class="hi"><span class="val" id="hs">0</span><span class="lbl">SCORE</span></div>
     <div class="hi"><span class="val" id="hbs">0</span><span class="lbl">BEST</span></div>
@@ -195,50 +72,58 @@ body{
     <div class="hi"><span class="val" id="hk">0</span><span class="lbl">KILLS</span></div>
     <div class="hi"><span class="val" id="hhp" style="color:#00e676">100</span><span class="lbl">HP</span></div>
   </div>
-  <div id="hp-bar-wrap"><div id="hp-bar-bg"><div id="hp-bar"></div></div></div>
+  <div id="ammo-wrap">
+    <div id="ammo-bg"><div id="ammo-fill"></div></div>
+  </div>
 
-  <!-- 战斗区 -->
   <div id="battle-wrap">
     <button id="pause-btn" onclick="togglePause()">⏸</button>
     <canvas id="battle-canvas"></canvas>
+    <div id="noammo-hint">⚠️ 弹药耗尽！快合并数字！</div>
   </div>
 
-  <!-- 武器进度条 -->
   <div id="weapon-bar">
-    <div id="weapon-label">🔫 当前武器</div>
+    <div id="weapon-label">🔫 当前武器：手枪  弹药：0</div>
     <div id="weapons">
-      <span class="wp" id="wp-2"  style="color:#a0785a" title="手枪">🔫<span class="wp-name">手枪</span></span>
-      <span class="wp" id="wp-4"  style="color:#cd853f" title="弓箭">🏹<span class="wp-name">弓箭</span></span>
-      <span class="wp" id="wp-8"  style="color:#ff6347" title="手雷">💣<span class="wp-name">手雷</span></span>
-      <span class="wp" id="wp-16" style="color:#ff4500" title="火焰">🔥<span class="wp-name">火焰</span></span>
-      <span class="wp" id="wp-32" style="color:#00bfff" title="冰冻">❄️<span class="wp-name">冰冻</span></span>
-      <span class="wp" id="wp-64" style="color:#9400d3" title="雷电">⚡<span class="wp-name">雷电</span></span>
-      <span class="wp" id="wp-128" style="color:#32cd32" title="毒雾">☠️<span class="wp-name">毒雾</span></span>
-      <span class="wp" id="wp-256" style="color:#ffd700" title="核弹">🌟<span class="wp-name">核弹</span></span>
+      <span class="wp" id="wp-2"   style="color:#a0785a">🔫<span class="wp-name">手枪</span></span>
+      <span class="wp" id="wp-4"   style="color:#cd853f">🏹<span class="wp-name">弓箭</span></span>
+      <span class="wp" id="wp-8"   style="color:#ff6347">💣<span class="wp-name">手雷</span></span>
+      <span class="wp" id="wp-16"  style="color:#ff4500">🔥<span class="wp-name">火焰</span></span>
+      <span class="wp" id="wp-32"  style="color:#00bfff">❄️<span class="wp-name">冰冻</span></span>
+      <span class="wp" id="wp-64"  style="color:#9400d3">⚡<span class="wp-name">雷电</span></span>
+      <span class="wp" id="wp-128" style="color:#32cd32">☠️<span class="wp-name">毒雾</span></span>
+      <span class="wp" id="wp-256" style="color:#ffd700">🌟<span class="wp-name">核弹</span></span>
     </div>
   </div>
 
-  <!-- 合并区 -->
   <div id="merge-wrap">
     <canvas id="merge-canvas"></canvas>
-    <div id="merge-hint">← 滑动合并数字升级武器 →</div>
+    <div id="merge-hint">← 滑动合并数字补充弹药 →</div>
   </div>
 
-  <!-- 覆盖层 -->
   <div id="overlay">
     <h1>🔫 2048射手</h1>
-    <p class="sub">合并数字 · 升级武器 · 消灭僵尸</p>
+    <p class="sub">合并数字获得弹药，消灭数字僵尸！</p>
     <div class="card">
-      <div class="card-title">⚔️ 战斗区（上方）</div>
-      <p><b>WASD</b> 或 <span>上下左右滑动</span> 移动角色</p>
-      <p><b>空格</b> 冲刺（无敌+破墙，2秒冷却）</p>
-      <p>🔫 武器<b>自动瞄准</b>并射击最近的僵尸</p>
+      <div class="card-title">🎯 核心玩法</div>
+      <p>🧟 <b>数字僵尸</b>：头顶数字 = 所需伤害（血量）</p>
+      <p>🔫 <b>弹药系统</b>：合成数字获得弹药，自动射击</p>
+      <p>⚠️ 弹药耗尽后，必须重新合并才能继续攻击！</p>
     </div>
     <div class="card">
-      <div class="card-title">🔢 合并区（下方）</div>
-      <p><span>← → ↑ ↓ 方向键</span> 或 <span>在下方滑动</span></p>
-      <p>相同数字碰撞 = <b>合并翻倍</b>，解锁更强武器！</p>
-      <p>数字越大 → 武器越强 → 僵尸死得越快 💥</p>
+      <div class="card-title">📊 数值对照表</div>
+      <p>合成 <span>2</span> → 手枪 🔫 弹药 <span>2</span> 发 | 单发伤害 <span>2</span></p>
+      <p>合成 <span>4</span> → 弓箭 🏹 弹药 <span>4</span> 发 | 单发伤害 <span>4</span></p>
+      <p>合成 <span>8</span> → 手雷 💣 弹药 <span>8</span> 发 | 单发伤害 <span>6</span></p>
+      <p>合成 <span>16</span> → 火焰 🔥 弹药 <span>16</span> 发 | 单发伤害 <span>8</span></p>
+      <p>合成 <span>32</span> → 冰冻 ❄️ 弹药 <span>32</span> 发 | 单发伤害 <span>10</span></p>
+      <p>合成 <span>64+</span> → 雷电/毒雾/核弹 弹药更多，伤害更高！</p>
+    </div>
+    <div class="card">
+      <div class="card-title">🕹️ 操作说明</div>
+      <p><b>战斗区（上）</b>：滑动移动 | <b>合并区（下）</b>：滑动合并</p>
+      <p>⌨️ WASD = 移动玩家 | 方向键 = 合并格子 | 空格 = 冲刺</p>
+      <p>🎯 武器自动瞄准最近的僵尸射击</p>
     </div>
     <button class="btn" onclick="startGame()">▶ 开始战斗</button>
   </div>
@@ -247,86 +132,121 @@ body{
 </div>
 
 <script>
-// ═══════════════════════════════════════════════
-//  常量
-// ═══════════════════════════════════════════════
-const MERGE_COLS = 6, MERGE_ROWS = 4;
-const CELL = 52; // 合并区格子大小
+// ═══════════════════════════════════════════════════════
+//  核心数值设计
+// ═══════════════════════════════════════════════════════
+//
+// 【弹药公式】弹药数 = tile值 × 系数
+//   Tile 2 → 2×1=2发   Tile 4 → 4×1=4发
+//   Tile 8 → 8×1=8发   Tile 16 → 16×1=16发
+//   Tile 32 → 32×1=32发  Tile 64 → 64×1=64发
+//   Tile 128 → 128×1=128发  Tile 256 → 256×1=256发
+//
+// 【伤害公式】单发伤害 = tile值（数字怪需要该数值的伤害才能打死）
+//   Tile 2 → 伤害2   Tile 4 → 伤害4
+//   Tile 8 → 伤害6（稍微溢出，打8血怪需要2发）
+//   Tile 16 → 伤害8  Tile 32 → 伤害10
+//   Tile 64 → 伤害12  Tile 128 → 伤害14
+//   Tile 256 → 伤害16
+//
+// 【怪物HP】波次增长
+//   Wave N: 小怪HP = 2 + (N-1)*2 （最多到64）
+//   Wave N: 中怪HP = 8 + (N-1)*4 （最多到256）
+//   Wave N: 大怪HP = 32 + (N-1)*8 （最多到512）
+//   每5波出现一只超级BOSS（HP = 64 + wave*16）
+//
+// ═══════════════════════════════════════════════════════
 
+const MERGE_COLS = 6, MERGE_ROWS = 4, CELL = 54;
+
+// 【武器配置】弹药数 = tile值， 伤害 = tile值（简单直接）
 const WEAPONS = {
-  2:  {icon:'🔫', color:'#a0785a', dmg:15,  rate:420, name:'手枪',  aoe:false},
-  4:  {icon:'🏹', color:'#cd853f', dmg:35,  rate:360, name:'弓箭',  aoe:false},
-  8:  {icon:'💣', color:'#ff6347', dmg:80,  rate:520, name:'手雷',  aoe:true,  aoeR:55},
-  16: {icon:'🔥', color:'#ff4500', dmg:140, rate:650, name:'火焰',  aoe:false},
-  32: {icon:'❄️', color:'#00bfff', dmg:220, rate:580, name:'冰冻',  aoe:false, slow:true},
-  64: {icon:'⚡', color:'#9400d3', dmg:350, rate:750, name:'雷电',  aoe:true,  aoeR:70},
-  128:{icon:'☠️', color:'#32cd32', dmg:500, rate:850, name:'毒雾',  aoe:true,  aoeR:90},
-  256:{icon:'🌟', color:'#ffd700', dmg:1000,rate:950, name:'核弹',  aoe:true,  aoeR:120}
+  2:   {icon:'🔫', color:'#a0785a', dmg:2,  rate:480, name:'手枪', aoe:false},
+  4:   {icon:'🏹', color:'#cd853f', dmg:4,  rate:420, name:'弓箭', aoe:false},
+  8:   {icon:'💣', color:'#ff6347', dmg:6,  rate:550, name:'手雷', aoe:true,  aoeR:55},
+  16:  {icon:'🔥', color:'#ff4500', dmg:8,  rate:620, name:'火焰', aoe:false},
+  32:  {icon:'❄️', color:'#00bfff', dmg:10, rate:550, name:'冰冻', aoe:false, slow:true},
+  64:  {icon:'⚡', color:'#9400d3', dmg:12, rate:700, name:'雷电', aoe:true,  aoeR:65},
+  128: {icon:'☠️', color:'#32cd32', dmg:14, rate:800, name:'毒雾', aoe:true,  aoeR:85},
+  256: {icon:'🌟', color:'#ffd700', dmg:16, rate:900, name:'核弹', aoe:true,  aoeR:110}
 };
 
+// 【敌人HP计算】
+function enemyHP(wave, tier) {
+  // tier: 0=小怪, 1=中怪, 2=大怪, 3=boss
+  const bases   = [2,   8,   32,  64];
+  const grows   = [2,   4,   8,   16];
+  const caps    = [64,  256, 512, 2048];
+  return Math.min(caps[tier], bases[tier] + (wave - 1) * grows[tier]);
+}
+
+function enemySpeed(wave, tier) {
+  const base = [0.7, 0.6, 0.5, 0.4][tier];
+  const extra = Math.min(wave * 0.02, 0.5);
+  return base + extra;
+}
+
+function enemySize(tier) {
+  return [22, 28, 36, 50][tier];
+}
+
+const TIER_LABELS = ['', '中', '大', 'BOSS'];
 const TILE_COLORS = {
   2:'#b8a99a', 4:'#e8d8c8', 8:'#f2a060', 16:'#f07840',
   32:'#e85030', 64:'#e03010', 128:'#e8c040', 256:'#e8b820',
   512:'#e8a800', 1024:'#e89000', 2048:'#e87800'
 };
 
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 //  状态
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 let bCanvas, bCtx, mCanvas, mCtx;
 let bW, bH, mW, mH;
 let grid, player, enemies, bullets, particles, bgStars;
 let score, highScore, kills, wave, gameState, lastTime;
 let waveTimer, spawnTimer, shootTimer;
 let highestTile, screenShake, isPaused;
-let mergeSwipe = {active:false, sx:0, sy:0};
+let ammo, maxAmmo; // 弹药系统
 
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 //  初始化
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 function initCanvases() {
   bCanvas = document.getElementById('battle-canvas');
   bCtx    = bCanvas.getContext('2d');
   mCanvas = document.getElementById('merge-canvas');
   mCtx    = mCanvas.getContext('2d');
 
-  const app = document.getElementById('app');
-  const appW = app.clientWidth;
-
-  // 战斗区：填满剩余高度
+  const app   = document.getElementById('app');
   const bWrap = document.getElementById('battle-wrap');
   bW = bWrap.clientWidth;
   bH = bWrap.clientHeight;
   bCanvas.width  = bW;
   bCanvas.height = bH;
 
-  // 合并区：固定高度 = CELL * MERGE_ROWS + padding
+  const appW = app.clientWidth;
   mW = appW;
   mH = CELL * MERGE_ROWS + 8;
   mCanvas.width  = mW;
   mCanvas.height = mH;
   mCanvas.style.height = mH + 'px';
-  document.getElementById('merge-wrap').style.height = (mH + 24) + 'px';
+  document.getElementById('merge-wrap').style.height = (mH + 22) + 'px';
 }
 
 function initBgStars() {
   bgStars = [];
   for (let i = 0; i < 80; i++) {
     bgStars.push({
-      x: Math.random() * bW,
-      y: Math.random() * bH,
+      x: Math.random() * bW, y: Math.random() * bH,
       r: Math.random() * 1.5 + 0.3,
-      a: Math.random(),
-      speed: Math.random() * 0.3 + 0.05
+      a: Math.random(), speed: Math.random() * 0.3 + 0.05
     });
   }
 }
 
 function initGrid() {
   grid = [];
-  for (let y = 0; y < MERGE_ROWS; y++) {
-    grid[y] = new Array(MERGE_COLS).fill(0);
-  }
+  for (let y = 0; y < MERGE_ROWS; y++) grid[y] = new Array(MERGE_COLS).fill(0);
   for (let i = 0; i < 4; i++) addRandomTile();
 }
 
@@ -337,7 +257,7 @@ function addRandomTile() {
       if (grid[y][x] === 0) empty.push({x, y});
   if (!empty.length) return;
   const pos = empty[Math.floor(Math.random() * empty.length)];
-  grid[pos.y][pos.x] = Math.random() < 0.85 ? 2 : 4;
+  grid[pos.y][pos.x] = Math.random() < 0.9 ? 2 : 4;
 }
 
 function startGame() {
@@ -348,90 +268,116 @@ function startGame() {
   player = {
     x: bW * 0.25, y: bH * 0.5,
     hp: 100, maxHp: 100,
-    invincible: 0, dashCooldown: 0,
-    vx: 0, vy: 0
+    invincible: 0, dashCooldown: 0
   };
   enemies  = [];
   bullets  = [];
   particles = [];
   score = 0; kills = 0; wave = 1;
   highestTile = 2;
+  ammo = 2; maxAmmo = 2; // 初始弹药
   waveTimer = 0; spawnTimer = 0; shootTimer = 0;
   screenShake = 0; isPaused = false;
   gameState = 'playing';
 
   document.getElementById('overlay').style.display = 'none';
   document.getElementById('pause-btn').style.display = 'block';
-  updateHUD(); updateWeapons();
+  updateHUD(); updateWeapons(); updateAmmoBar();
   lastTime = performance.now();
   requestAnimationFrame(loop);
 }
 
-// ═══════════════════════════════════════════════
-//  游戏逻辑
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
+//  敌人生成
+// ═══════════════════════════════════════════════════════
 function spawnEnemy() {
-  const hp    = 30 + wave * 20;
-  const speed = 0.8 + wave * 0.07;
-  const isBig = wave >= 5 && Math.random() < 0.2;
-  enemies.push({
-    x: bW + 60,
-    y: Math.random() * (bH - 80) + 40,
-    hp, maxHp: hp, speed,
-    size: isBig ? 28 : 20,
-    isBig
-  });
+  const tier = wave >= 5 ? Math.min(2, Math.floor(Math.random() * (1 + Math.floor(wave / 5)))) : 0;
+  // 波次5/10/15...有概率生成BOSS
+  if (wave >= 10 && wave % 5 === 0 && Math.random() < 0.15) {
+    // 超级BOSS
+    enemies.push({
+      x: bW + 60, y: Math.random() * (bH - 80) + 40,
+      hp: enemyHP(wave, 3), maxHp: enemyHP(wave, 3),
+      speed: enemySpeed(wave, 3), size: enemySize(3), tier: 3
+    });
+  } else {
+    enemies.push({
+      x: bW + 60,
+      y: Math.random() * (bH - 80) + 40,
+      hp: enemyHP(wave, tier), maxHp: enemyHP(wave, tier),
+      speed: enemySpeed(wave, tier), size: enemySize(tier), tier
+    });
+  }
 }
 
+// ═══════════════════════════════════════════════════════
+//  射击 & 弹药
+// ═══════════════════════════════════════════════════════
 function shoot() {
   const w = WEAPONS[highestTile];
-  if (!w) return;
+  if (!w || ammo <= 0) return;
+
   // 找最近敌人
   let target = null, minD = Infinity;
   enemies.forEach(e => {
     const d = Math.hypot(e.x - player.x, e.y - player.y);
     if (d < minD) { minD = d; target = e; }
   });
+
   let vx = 10, vy = 0;
   if (target) {
     const ang = Math.atan2(target.y - player.y, target.x - player.x);
     const spd = 11;
-    vx = Math.cos(ang) * spd;
-    vy = Math.sin(ang) * spd;
+    vx = Math.cos(ang) * spd; vy = Math.sin(ang) * spd;
   }
+
   bullets.push({
     x: player.x + 20, y: player.y,
     vx, vy,
     dmg: w.dmg, color: w.color,
-    size: highestTile >= 64 ? 12 : highestTile >= 16 ? 9 : 6,
+    size: highestTile >= 64 ? 11 : highestTile >= 16 ? 8 : 6,
     aoe: w.aoe || false, aoeR: w.aoeR || 0,
-    slow: w.slow || false,
-    life: 1
+    slow: w.slow || false
   });
+
+  ammo--;  // 消耗弹药
   shootTimer = 0;
+  updateAmmoBar();
+  updateWeaponLabel();
 }
 
+function refillAmmo(tileVal) {
+  // 弹药数 = tile值（直接对应，简单直观）
+  maxAmmo = tileVal;
+  ammo = tileVal;
+}
+
+// ═══════════════════════════════════════════════════════
+//  更新逻辑
+// ═══════════════════════════════════════════════════════
 function update(dt) {
   if (gameState !== 'playing' || isPaused) return;
 
-  // 玩家无敌/冲刺冷却
   if (player.invincible > 0) player.invincible -= dt;
   if (player.dashCooldown > 0) player.dashCooldown -= dt;
 
   // 生成敌人
   spawnTimer += dt;
-  const spawnInterval = Math.max(300, 1500 - wave * 65);
-  if (spawnTimer >= spawnInterval) { spawnTimer = 0; spawnEnemy(); }
+  const baseInterval = Math.max(280, 1400 - wave * 55);
+  const interval = baseInterval * (enemies.length > 0 ? 1.1 : 1);
+  if (spawnTimer >= interval) { spawnTimer = 0; spawnEnemy(); }
 
   // 波次推进
   waveTimer += dt;
-  if (waveTimer >= 18000) { waveTimer = 0; wave++; showKillBanner('🌊 第' + wave + '波来袭！'); }
+  if (waveTimer >= 20000) { waveTimer = 0; wave++; showKillBanner('🌊 第' + wave + '波来袭！'); }
 
-  // 自动射击
-  const w = WEAPONS[highestTile];
-  if (w && enemies.length > 0) {
-    shootTimer += dt;
-    if (shootTimer >= w.rate) shoot();
+  // 自动射击（弹药>0时）
+  if (ammo > 0) {
+    const w = WEAPONS[highestTile];
+    if (w && enemies.length > 0) {
+      shootTimer += dt;
+      if (shootTimer >= w.rate) shoot();
+    }
   }
 
   // 更新子弹
@@ -441,52 +387,49 @@ function update(dt) {
     for (let i = enemies.length - 1; i >= 0; i--) {
       const e = enemies[i];
       const d = Math.hypot(e.x - b.x, e.y - b.y);
-      const hitR = e.size + b.size;
-      if (d < hitR) {
+      if (d < e.size + b.size) {
         if (b.aoe) {
-          // AOE 伤害范围内所有敌人
           enemies.forEach(ae => {
             if (Math.hypot(ae.x - b.x, ae.y - b.y) < b.aoeR) {
               ae.hp -= b.dmg;
-              if (b.slow) ae.speed = Math.max(0.2, ae.speed * 0.5);
+              if (b.slow) ae.speed = Math.max(0.15, ae.speed * 0.45);
             }
           });
           spawnExplosion(b.x, b.y, b.color, b.aoeR);
         } else {
           e.hp -= b.dmg;
-          if (b.slow) e.speed = Math.max(0.2, e.speed * 0.5);
+          if (b.slow) e.speed = Math.max(0.15, e.speed * 0.45);
           spawnHitParticles(e.x, e.y, b.color);
-        }
-        // 清理死亡敌人
-        for (let j = enemies.length - 1; j >= 0; j--) {
-          if (enemies[j].hp <= 0) {
-            spawnKillParticles(enemies[j].x, enemies[j].y, enemies[j].isBig);
-            kills++;
-            score += (enemies[j].isBig ? 60 : 25) + wave * 5;
-            if (kills % 10 === 0) showKillBanner('🔥 ' + kills + ' 连杀！');
-            enemies.splice(j, 1);
-          }
         }
         hit = true;
         break;
       }
     }
-    if (hit && !b.aoe) return false;
-    if (hit && b.aoe) return false;
+    if (hit) return false;
     return b.x < bW + 80 && b.x > -80 && b.y > -80 && b.y < bH + 80;
   });
 
+  // 清理死亡敌人
+  for (let i = enemies.length - 1; i >= 0; i--) {
+    if (enemies[i].hp <= 0) {
+      const e = enemies[i];
+      spawnKillParticles(e.x, e.y, e.tier);
+      kills++;
+      score += (e.tier + 1) * 20 + wave * 5;
+      if (kills % 10 === 0) showKillBanner('🔥 ' + kills + ' 连杀！');
+      enemies.splice(i, 1);
+    }
+  }
+
   // 更新敌人
   enemies.forEach(e => {
-    // 追踪玩家
     const ang = Math.atan2(player.y - e.y, player.x - e.x);
     e.x += Math.cos(ang) * e.speed;
     e.y += Math.sin(ang) * e.speed;
 
-    // 碰撞玩家
     const d = Math.hypot(e.x - player.x, e.y - player.y);
     if (d < e.size + 18 && player.invincible <= 0) {
-      player.hp -= 10;
+      player.hp -= (e.tier + 1) * 6;
       player.invincible = 700;
       screenShake = 10;
       spawnDamageParticles(player.x, player.y);
@@ -494,10 +437,9 @@ function update(dt) {
     }
   });
 
-  // 清理出界敌人（从左侧逃脱）
   enemies = enemies.filter(e => e.x > -60);
 
-  // 更新粒子
+  // 粒子
   particles = particles.filter(p => {
     p.x += p.vx; p.y += p.vy;
     p.vx *= 0.95; p.vy *= 0.95;
@@ -505,124 +447,78 @@ function update(dt) {
     return p.life > 0;
   });
 
-  // 更新星星
+  // 星空
   bgStars.forEach(s => {
     s.x -= s.speed;
     if (s.x < 0) { s.x = bW; s.y = Math.random() * bH; }
     s.a = 0.3 + Math.sin(Date.now() * 0.001 + s.x) * 0.3;
   });
 
-  // 屏幕震动衰减
   if (screenShake > 0) screenShake *= 0.82;
   if (screenShake < 0.5) screenShake = 0;
 
   updateHUD();
+  updateWeaponLabel();
 }
 
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 //  粒子特效
-// ═══════════════════════════════════════════════
-function spawnKillParticles(x, y, isBig) {
-  const n = isBig ? 20 : 12;
+// ═══════════════════════════════════════════════════════
+function spawnKillParticles(x, y, tier) {
+  const colors = ['#ff6b6b', '#ffa500', '#ffd700', '#ff1493'];
+  const color = colors[Math.min(tier, 3)];
+  const n = 8 + tier * 6;
   for (let i = 0; i < n; i++) {
     const ang = (Math.PI * 2 * i) / n + Math.random() * 0.5;
-    const spd = (Math.random() * 4 + 2) * (isBig ? 1.5 : 1);
-    particles.push({
-      x, y,
-      vx: Math.cos(ang) * spd, vy: Math.sin(ang) * spd,
-      life: 1, decay: 0.02,
-      color: isBig ? '#ffd700' : '#ff6b6b',
-      size: isBig ? 8 : 5, type: 'circle'
-    });
+    const spd = Math.random() * 4 + 2;
+    particles.push({x, y, vx:Math.cos(ang)*spd, vy:Math.sin(ang)*spd, life:1, decay:0.02, color, size:5+tier*2, type:'circle'});
   }
-  // 血迹
-  for (let i = 0; i < 6; i++) {
-    particles.push({
-      x, y,
-      vx: (Math.random() - 0.5) * 6, vy: (Math.random() - 0.5) * 6,
-      life: 1, decay: 0.015,
-      color: '#cc0000', size: 10, type: 'splat'
-    });
+  for (let i = 0; i < 5; i++) {
+    particles.push({x, y, vx:(Math.random()-.5)*5, vy:(Math.random()-.5)*5, life:1, decay:0.015, color:'#cc0000', size:9, type:'splat'});
   }
 }
 
 function spawnExplosion(x, y, color, radius) {
-  // 爆炸环
   particles.push({x, y, vx:0, vy:0, life:1, decay:0.04, color, size:radius, type:'ring'});
-  // 碎片
   for (let i = 0; i < 16; i++) {
     const ang = (Math.PI * 2 * i) / 16;
     const spd = Math.random() * 5 + 2;
-    particles.push({
-      x, y,
-      vx: Math.cos(ang) * spd, vy: Math.sin(ang) * spd,
-      life: 1, decay: 0.03, color, size: 5, type: 'circle'
-    });
+    particles.push({x, y, vx:Math.cos(ang)*spd, vy:Math.sin(ang)*spd, life:1, decay:0.03, color, size:5, type:'circle'});
   }
   screenShake = Math.max(screenShake, 6);
 }
 
 function spawnHitParticles(x, y, color) {
   for (let i = 0; i < 5; i++) {
-    particles.push({
-      x, y,
-      vx: (Math.random() - 0.5) * 5, vy: (Math.random() - 0.5) * 5,
-      life: 0.8, decay: 0.04, color, size: 4, type: 'circle'
-    });
+    particles.push({x, y, vx:(Math.random()-.5)*5, vy:(Math.random()-.5)*5, life:.8, decay:.04, color, size:4, type:'circle'});
   }
 }
 
 function spawnDamageParticles(x, y) {
   for (let i = 0; i < 14; i++) {
-    particles.push({
-      x, y,
-      vx: (Math.random() - 0.5) * 10, vy: (Math.random() - 0.5) * 10,
-      life: 1, decay: 0.03, color: '#ff2020', size: 7, type: 'circle'
-    });
+    particles.push({x, y, vx:(Math.random()-.5)*10, vy:(Math.random()-.5)*10, life:1, decay:.03, color:'#ff2020', size:7, type:'circle'});
   }
 }
 
 function spawnDashParticles(x, y) {
   for (let i = 0; i < 18; i++) {
     const ang = (Math.PI * 2 * i) / 18;
-    particles.push({
-      x, y,
-      vx: Math.cos(ang) * 7, vy: Math.sin(ang) * 7,
-      life: 0.9, decay: 0.03, color: '#00bfff', size: 6, type: 'circle'
-    });
+    particles.push({x, y, vx:Math.cos(ang)*7, vy:Math.sin(ang)*7, life:.9, decay:.03, color:'#00bfff', size:6, type:'circle'});
   }
 }
 
-function spawnMergeParticles(gx, gy, val) {
-  // 在战斗区顶部显示合并特效
-  const color = TILE_COLORS[val] || '#ffd700';
-  const cx = (gx + 0.5) * CELL;
-  const cy = (gy + 0.5) * CELL;
-  // 在合并区画特效（用 mCtx 临时闪光）
-  for (let i = 0; i < 8; i++) {
-    particles.push({
-      x: player.x, y: player.y - 30,
-      vx: (Math.random() - 0.5) * 4, vy: -Math.random() * 4 - 2,
-      life: 1, decay: 0.03, color, size: 8, type: 'circle'
-    });
-  }
-}
-
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 //  绘制 - 战斗区
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 function drawBattle() {
   bCtx.clearRect(0, 0, bW, bH);
 
   bCtx.save();
   if (screenShake > 0) {
-    bCtx.translate(
-      (Math.random() - 0.5) * screenShake,
-      (Math.random() - 0.5) * screenShake
-    );
+    bCtx.translate((Math.random()-.5)*screenShake, (Math.random()-.5)*screenShake);
   }
 
-  // 背景渐变
+  // 背景
   const bg = bCtx.createLinearGradient(0, 0, bW, bH);
   bg.addColorStop(0, '#0a0a22');
   bg.addColorStop(0.5, '#0d0d2a');
@@ -633,25 +529,20 @@ function drawBattle() {
   // 星空
   bgStars.forEach(s => {
     bCtx.globalAlpha = s.a;
-    bCtx.fillStyle = '#ffffff';
-    bCtx.beginPath();
-    bCtx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-    bCtx.fill();
+    bCtx.fillStyle = '#fff';
+    bCtx.beginPath(); bCtx.arc(s.x, s.y, s.r, 0, Math.PI * 2); bCtx.fill();
   });
   bCtx.globalAlpha = 1;
 
   // 地面线
-  bCtx.strokeStyle = 'rgba(50,50,120,.4)';
+  bCtx.strokeStyle = 'rgba(50,50,120,.3)';
   bCtx.lineWidth = 1;
-  for (let i = 0; i < 5; i++) {
-    const y = (bH / 5) * i;
-    bCtx.beginPath();
-    bCtx.moveTo(0, y);
-    bCtx.lineTo(bW, y);
-    bCtx.stroke();
+  for (let i = 0; i < 6; i++) {
+    const y = (bH / 6) * i;
+    bCtx.beginPath(); bCtx.moveTo(0, y); bCtx.lineTo(bW, y); bCtx.stroke();
   }
 
-  // 粒子（先画，在角色/敌人下面）
+  // 粒子（底层）
   particles.forEach(p => {
     bCtx.globalAlpha = Math.max(0, p.life);
     if (p.type === 'ring') {
@@ -667,11 +558,8 @@ function drawBattle() {
       bCtx.fill();
     } else {
       bCtx.fillStyle = p.color;
-      bCtx.shadowBlur = 6;
-      bCtx.shadowColor = p.color;
-      bCtx.beginPath();
-      bCtx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
-      bCtx.fill();
+      bCtx.shadowBlur = 6; bCtx.shadowColor = p.color;
+      bCtx.beginPath(); bCtx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2); bCtx.fill();
       bCtx.shadowBlur = 0;
     }
   });
@@ -679,208 +567,159 @@ function drawBattle() {
 
   // 子弹
   bullets.forEach(b => {
-    // 拖尾
     bCtx.strokeStyle = b.color;
     bCtx.lineWidth = b.size * 0.6;
-    bCtx.globalAlpha = 0.35;
-    bCtx.beginPath();
-    bCtx.moveTo(b.x, b.y);
-    bCtx.lineTo(b.x - b.vx * 5, b.y - b.vy * 5);
-    bCtx.stroke();
+    bCtx.globalAlpha = 0.3;
+    bCtx.beginPath(); bCtx.moveTo(b.x, b.y); bCtx.lineTo(b.x - b.vx * 5, b.y - b.vy * 5); bCtx.stroke();
     bCtx.globalAlpha = 1;
-    // 弹头
     bCtx.fillStyle = b.color;
-    bCtx.shadowBlur = 14;
-    bCtx.shadowColor = b.color;
-    bCtx.beginPath();
-    bCtx.arc(b.x, b.y, b.size, 0, Math.PI * 2);
-    bCtx.fill();
+    bCtx.shadowBlur = 12; bCtx.shadowColor = b.color;
+    bCtx.beginPath(); bCtx.arc(b.x, b.y, b.size, 0, Math.PI * 2); bCtx.fill();
     bCtx.shadowBlur = 0;
-    // AOE 范围圈
     if (b.aoe) {
-      bCtx.strokeStyle = b.color;
-      bCtx.lineWidth = 1.5;
-      bCtx.globalAlpha = 0.3;
-      bCtx.beginPath();
-      bCtx.arc(b.x, b.y, b.aoeR, 0, Math.PI * 2);
-      bCtx.stroke();
+      bCtx.strokeStyle = b.color; bCtx.lineWidth = 1.5;
+      bCtx.globalAlpha = 0.25;
+      bCtx.beginPath(); bCtx.arc(b.x, b.y, b.aoeR, 0, Math.PI * 2); bCtx.stroke();
       bCtx.globalAlpha = 1;
     }
   });
 
-  // 敌人
+  // 敌人（数字怪）
   enemies.forEach(e => {
     const r = e.size;
+    const hpDisplay = Math.ceil(e.hp);
+
     // 阴影
     bCtx.fillStyle = 'rgba(0,0,0,.4)';
     bCtx.beginPath();
-    bCtx.ellipse(e.x, e.y + r + 4, r * 0.8, r * 0.3, 0, 0, Math.PI * 2);
+    bCtx.ellipse(e.x, e.y + r + 5, r * 0.8, r * 0.3, 0, 0, Math.PI * 2);
     bCtx.fill();
 
-    // 身体发光
-    bCtx.shadowBlur = 16;
-    bCtx.shadowColor = e.isBig ? '#ff6600' : '#cc0000';
-    bCtx.fillStyle = e.isBig ? '#3a1800' : '#2a0808';
-    bCtx.beginPath();
-    bCtx.arc(e.x, e.y, r + 2, 0, Math.PI * 2);
-    bCtx.fill();
-    bCtx.fillStyle = e.isBig ? '#8b3000' : '#6b0000';
-    bCtx.beginPath();
-    bCtx.arc(e.x, e.y, r, 0, Math.PI * 2);
-    bCtx.fill();
+    // 身体颜色（按HP阶段）
+    const hpPhase = hpDisplay <= 8 ? 0 : hpDisplay <= 32 ? 1 : hpDisplay <= 128 ? 2 : 3;
+    const bodyColors = ['#1a1a3a', '#2a1a3a', '#3a1a2a', '#3a0a1a'];
+    const glowColors = ['#4444ff', '#8800ff', '#ff4400', '#ff0044'];
+    const bc = bodyColors[hpPhase], gc = glowColors[hpPhase];
+
+    bCtx.shadowBlur = 18; bCtx.shadowColor = gc;
+    bCtx.fillStyle = bc;
+    bCtx.beginPath(); bCtx.arc(e.x, e.y, r + 2, 0, Math.PI * 2); bCtx.fill();
+    bCtx.fillStyle = gc;
+    bCtx.globalAlpha = 0.35;
+    bCtx.beginPath(); bCtx.arc(e.x, e.y, r, 0, Math.PI * 2); bCtx.fill();
+    bCtx.globalAlpha = 1;
     bCtx.shadowBlur = 0;
 
-    // 眼睛
-    const eyeR = r * 0.22;
-    bCtx.fillStyle = '#ff2020';
-    bCtx.shadowBlur = 8; bCtx.shadowColor = '#ff0000';
-    bCtx.beginPath(); bCtx.arc(e.x - r * 0.35, e.y - r * 0.2, eyeR, 0, Math.PI * 2); bCtx.fill();
-    bCtx.beginPath(); bCtx.arc(e.x + r * 0.35, e.y - r * 0.2, eyeR, 0, Math.PI * 2); bCtx.fill();
+    // HP数字（核心！大字体醒目）
+    bCtx.fillStyle = '#fff';
+    bCtx.font = `bold ${Math.max(11, r * 0.9)}px monospace`;
+    bCtx.textAlign = 'center';
+    bCtx.textBaseline = 'middle';
+    bCtx.shadowBlur = 4; bCtx.shadowColor = '#000';
+    bCtx.fillText(hpDisplay, e.x, e.y);
     bCtx.shadowBlur = 0;
 
-    // 嘴（锯齿）
-    bCtx.fillStyle = '#ff4040';
-    bCtx.beginPath();
-    bCtx.moveTo(e.x - r * 0.4, e.y + r * 0.2);
-    for (let i = 0; i <= 4; i++) {
-      const tx = e.x - r * 0.4 + (r * 0.8 / 4) * i;
-      const ty = e.y + r * 0.2 + (i % 2 === 0 ? 0 : r * 0.25);
-      bCtx.lineTo(tx, ty);
+    // BOSS额外光环
+    if (e.tier === 3) {
+      bCtx.strokeStyle = '#ffd700';
+      bCtx.lineWidth = 2;
+      bCtx.globalAlpha = 0.5 + Math.sin(Date.now() * 0.006) * 0.4;
+      bCtx.beginPath(); bCtx.arc(e.x, e.y, r + 8, 0, Math.PI * 2); bCtx.stroke();
+      bCtx.globalAlpha = 1;
+      bCtx.font = 'bold 10px sans-serif';
+      bCtx.fillStyle = '#ffd700';
+      bCtx.fillText('BOSS', e.x, e.y - r - 8);
     }
-    bCtx.closePath();
-    bCtx.fill();
-
-    // HP 条
-    const bw = r * 2.4, bh = 4;
-    const bx = e.x - bw / 2, by = e.y - r - 12;
-    bCtx.fillStyle = '#1a1a1a';
-    bCtx.fillRect(bx - 1, by - 1, bw + 2, bh + 2);
-    const pct = e.hp / e.maxHp;
-    bCtx.fillStyle = pct > 0.5 ? '#00e676' : pct > 0.25 ? '#ffea00' : '#ff1744';
-    bCtx.fillRect(bx, by, bw * pct, bh);
   });
 
   // 玩家
   const px = player.x, py = player.y;
   const flash = player.invincible > 0 && Math.floor(Date.now() / 80) % 2 === 0;
   if (!flash) {
-    // 光环
     const w = WEAPONS[highestTile];
     if (w) {
       bCtx.strokeStyle = w.color;
       bCtx.lineWidth = 2;
       bCtx.globalAlpha = 0.5 + Math.sin(Date.now() * 0.004) * 0.3;
-      bCtx.beginPath();
-      bCtx.arc(px, py, 28, 0, Math.PI * 2);
-      bCtx.stroke();
+      bCtx.beginPath(); bCtx.arc(px, py, 26, 0, Math.PI * 2); bCtx.stroke();
       bCtx.globalAlpha = 1;
     }
-    // 身体
-    bCtx.shadowBlur = 20;
-    bCtx.shadowColor = '#00e676';
+    bCtx.shadowBlur = 18; bCtx.shadowColor = '#00e676';
     bCtx.fillStyle = '#004d20';
-    bCtx.beginPath();
-    bCtx.arc(px, py, 20, 0, Math.PI * 2);
-    bCtx.fill();
+    bCtx.beginPath(); bCtx.arc(px, py, 20, 0, Math.PI * 2); bCtx.fill();
     bCtx.fillStyle = '#00c853';
-    bCtx.beginPath();
-    bCtx.arc(px, py, 16, 0, Math.PI * 2);
-    bCtx.fill();
+    bCtx.beginPath(); bCtx.arc(px, py, 16, 0, Math.PI * 2); bCtx.fill();
     bCtx.shadowBlur = 0;
-    // 角色图标
-    bCtx.font = '20px sans-serif';
-    bCtx.textAlign = 'center';
-    bCtx.textBaseline = 'middle';
+    bCtx.font = '19px sans-serif'; bCtx.textAlign = 'center'; bCtx.textBaseline = 'middle';
     bCtx.fillText('🎯', px, py);
   }
 
-  // 无敌护盾
   if (player.invincible > 0) {
     bCtx.strokeStyle = `rgba(0,191,255,${player.invincible / 700})`;
     bCtx.lineWidth = 3;
-    bCtx.beginPath();
-    bCtx.arc(px, py, 26, 0, Math.PI * 2);
-    bCtx.stroke();
+    bCtx.beginPath(); bCtx.arc(px, py, 25, 0, Math.PI * 2); bCtx.stroke();
   }
 
-  // 冲刺冷却圆环
+  // 冲刺冷却
   if (player.dashCooldown > 0) {
-    const cx = 36, cy = bH - 36;
-    bCtx.strokeStyle = '#1a1a3a';
-    bCtx.lineWidth = 5;
-    bCtx.beginPath(); bCtx.arc(cx, cy, 22, 0, Math.PI * 2); bCtx.stroke();
-    bCtx.strokeStyle = '#00bfff';
-    bCtx.lineWidth = 5;
+    const cx = 34, cy = bH - 34;
+    bCtx.strokeStyle = '#1a1a3a'; bCtx.lineWidth = 5;
+    bCtx.beginPath(); bCtx.arc(cx, cy, 20, 0, Math.PI * 2); bCtx.stroke();
+    bCtx.strokeStyle = '#00bfff'; bCtx.lineWidth = 5;
     bCtx.beginPath();
-    bCtx.arc(cx, cy, 22, -Math.PI / 2, -Math.PI / 2 + (1 - player.dashCooldown / 2000) * Math.PI * 2);
+    bCtx.arc(cx, cy, 20, -Math.PI/2, -Math.PI/2 + (1 - player.dashCooldown/2000) * Math.PI * 2);
     bCtx.stroke();
-    bCtx.font = '14px sans-serif';
-    bCtx.textAlign = 'center'; bCtx.textBaseline = 'middle';
+    bCtx.font = '13px sans-serif'; bCtx.textAlign = 'center'; bCtx.textBaseline = 'middle';
     bCtx.fillText('💨', cx, cy);
   }
 
-  // 暂停遮罩
   if (isPaused) {
     bCtx.fillStyle = 'rgba(0,0,0,.75)';
     bCtx.fillRect(0, 0, bW, bH);
-    bCtx.fillStyle = '#fff';
-    bCtx.font = 'bold 26px sans-serif';
+    bCtx.fillStyle = '#fff'; bCtx.font = 'bold 26px sans-serif';
     bCtx.textAlign = 'center'; bCtx.textBaseline = 'middle';
     bCtx.fillText('⏸ 已暂停', bW / 2, bH / 2);
-    bCtx.font = '15px sans-serif';
-    bCtx.fillStyle = '#888';
+    bCtx.font = '15px sans-serif'; bCtx.fillStyle = '#888';
     bCtx.fillText('按 ESC / P 继续', bW / 2, bH / 2 + 36);
   }
 
   bCtx.restore();
 }
 
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 //  绘制 - 合并区
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 function drawMerge() {
   mCtx.clearRect(0, 0, mW, mH);
-
-  // 背景
   mCtx.fillStyle = '#0c0c24';
   mCtx.fillRect(0, 0, mW, mH);
 
-  // 格子偏移（居中）
   const offsetX = (mW - MERGE_COLS * CELL) / 2;
   const offsetY = 4;
 
   for (let y = 0; y < MERGE_ROWS; y++) {
     for (let x = 0; x < MERGE_COLS; x++) {
-      const px = offsetX + x * CELL;
-      const py = offsetY + y * CELL;
-
-      // 格子底色
-      mCtx.fillStyle = '#1e1e40';
+      const px = offsetX + x * CELL, py = offsetY + y * CELL;
+      mCtx.fillStyle = '#1a1a3e';
       roundRect(mCtx, px + 3, py + 3, CELL - 6, CELL - 6, 8);
       mCtx.fill();
 
       const v = grid[y][x];
       if (v > 0) {
         const color = TILE_COLORS[v] || '#ffd700';
-        // 格子
-        mCtx.shadowBlur = 10;
-        mCtx.shadowColor = color;
+        mCtx.shadowBlur = 10; mCtx.shadowColor = color;
         mCtx.fillStyle = color;
         roundRect(mCtx, px + 4, py + 4, CELL - 8, CELL - 8, 7);
-        mCtx.fill();
-        mCtx.shadowBlur = 0;
+        mCtx.fill(); mCtx.shadowBlur = 0;
 
-        // 数字
         mCtx.fillStyle = v > 4 ? '#fff' : '#555';
-        mCtx.font = `bold ${v > 99 ? 16 : v > 9 ? 20 : 24}px sans-serif`;
-        mCtx.textAlign = 'center';
-        mCtx.textBaseline = 'middle';
-        mCtx.fillText(v, px + CELL / 2, py + CELL / 2 - (WEAPONS[v] ? 5 : 0));
+        mCtx.font = `bold ${v > 99 ? 15 : v > 9 ? 19 : 23}px sans-serif`;
+        mCtx.textAlign = 'center'; mCtx.textBaseline = 'middle';
+        mCtx.fillText(v, px + CELL/2, py + CELL/2 - (WEAPONS[v] ? 5 : 0));
 
-        // 武器图标
         if (WEAPONS[v]) {
           mCtx.font = '11px sans-serif';
-          mCtx.fillText(WEAPONS[v].icon, px + CELL / 2, py + CELL - 11);
+          mCtx.fillText(WEAPONS[v].icon, px + CELL/2, py + CELL - 11);
         }
       }
     }
@@ -889,23 +728,21 @@ function drawMerge() {
 
 function roundRect(ctx, x, y, w, h, r) {
   ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.lineTo(x + w - r, y);
+  ctx.moveTo(x + r, y); ctx.lineTo(x + w - r, y);
   ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-  ctx.lineTo(x + w, y + h - r);
-  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-  ctx.lineTo(x + r, y + h);
-  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-  ctx.lineTo(x, y + r);
-  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.lineTo(x + w, y + h - r); ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h); ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r); ctx.quadraticCurveTo(x, y, x + r, y);
   ctx.closePath();
 }
 
-// ═══════════════════════════════════════════════
-//  合并逻辑
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
+//  合并逻辑（补给弹药）
+// ═══════════════════════════════════════════════════════
 function moveAll(dx, dy) {
   let moved = false;
+  let highestMerged = 0;
+
   if (dx !== 0) {
     for (let y = 0; y < MERGE_ROWS; y++) {
       for (let x = dx > 0 ? MERGE_COLS - 1 : 0; dx > 0 ? x >= 0 : x < MERGE_COLS; x += dx > 0 ? -1 : 1) {
@@ -914,7 +751,7 @@ function moveAll(dx, dy) {
         while (true) {
           const nx = tx + dx;
           if (nx < 0 || nx >= MERGE_COLS) break;
-          if (grid[y][nx] === 0) { tx = nx; }
+          if (grid[y][nx] === 0) tx = nx;
           else if (grid[y][nx] === grid[y][x]) { tx = nx; break; }
           else break;
         }
@@ -922,10 +759,9 @@ function moveAll(dx, dy) {
           moved = true;
           if (grid[y][tx] === grid[y][x]) {
             grid[y][tx] = grid[y][x] * 2;
-            const nv = grid[y][tx];
-            if (nv > highestTile) { highestTile = nv; updateWeapons(); }
-            score += nv;
-            spawnMergeParticles(tx, y, nv);
+            highestMerged = Math.max(highestMerged, grid[y][tx]);
+            score += grid[y][tx];
+            spawnMergeBurst(tx, y, grid[y][tx]);
           } else {
             grid[y][tx] = grid[y][x];
           }
@@ -941,7 +777,7 @@ function moveAll(dx, dy) {
         while (true) {
           const ny = ty + dy;
           if (ny < 0 || ny >= MERGE_ROWS) break;
-          if (grid[ny][x] === 0) { ty = ny; }
+          if (grid[ny][x] === 0) ty = ny;
           else if (grid[ny][x] === grid[y][x]) { ty = ny; break; }
           else break;
         }
@@ -949,10 +785,9 @@ function moveAll(dx, dy) {
           moved = true;
           if (grid[ty][x] === grid[y][x]) {
             grid[ty][x] = grid[y][x] * 2;
-            const nv = grid[ty][x];
-            if (nv > highestTile) { highestTile = nv; updateWeapons(); }
-            score += nv;
-            spawnMergeParticles(x, ty, nv);
+            highestMerged = Math.max(highestMerged, grid[ty][x]);
+            score += grid[ty][x];
+            spawnMergeBurst(x, ty, grid[ty][x]);
           } else {
             grid[ty][x] = grid[y][x];
           }
@@ -961,23 +796,40 @@ function moveAll(dx, dy) {
       }
     }
   }
-  if (moved) { addRandomTile(); updateWeapons(); }
+
+  if (moved) {
+    addRandomTile();
+    if (highestMerged > highestTile) {
+      highestTile = highestMerged;
+      if (WEAPONS[highestMerged]) {
+        refillAmmo(highestMerged); // 升级武器时补充弹药
+      }
+      updateWeapons();
+      updateAmmoBar();
+      showKillBanner('⚡ 武器升级！' + (WEAPONS[highestMerged]?.icon || '') + ' 弹药已补满！');
+    }
+  }
 }
 
-// ═══════════════════════════════════════════════
-//  输入处理
-// ═══════════════════════════════════════════════
-// 键盘
+function spawnMergeBurst(gx, gy, val) {
+  const color = TILE_COLORS[val] || '#ffd700';
+  const cx = player.x, cy = player.y - 20;
+  for (let i = 0; i < 8; i++) {
+    particles.push({x:cx, y:cy, vx:(Math.random()-.5)*4, vy:-Math.random()*4-1, life:1, decay:.03, color, size:7, type:'circle'});
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  输入
+// ═══════════════════════════════════════════════════════
 document.addEventListener('keydown', e => {
   if (gameState !== 'playing') return;
   if (e.key === 'Escape' || e.key === 'p' || e.key === 'P') { e.preventDefault(); togglePause(); return; }
   if (isPaused) return;
-  // 方向键 → 合并
   if (e.key === 'ArrowLeft')  { e.preventDefault(); moveAll(-1, 0); }
   if (e.key === 'ArrowRight') { e.preventDefault(); moveAll(1, 0); }
   if (e.key === 'ArrowUp')    { e.preventDefault(); moveAll(0, -1); }
   if (e.key === 'ArrowDown')  { e.preventDefault(); moveAll(0, 1); }
-  // WASD → 移动玩家
   if (e.key === 'w' || e.key === 'W') movePlayerTo(0, -1);
   if (e.key === 's' || e.key === 'S') movePlayerTo(0, 1);
   if (e.key === 'a' || e.key === 'A') movePlayerTo(-1, 0);
@@ -985,61 +837,48 @@ document.addEventListener('keydown', e => {
   if (e.key === ' ') { e.preventDefault(); dashPlayer(); }
 });
 
-// 战斗区触摸 → 移动玩家
 const bWrapEl = document.getElementById('battle-wrap');
-let bSwipe = {active: false, sx: 0, sy: 0};
-bWrapEl.addEventListener('pointerdown', e => {
-  bSwipe = {active: true, sx: e.clientX, sy: e.clientY};
-});
+let bSwipe = {active:false, sx:0, sy:0};
+bWrapEl.addEventListener('pointerdown', e => { bSwipe = {active:true, sx:e.clientX, sy:e.clientY}; });
 bWrapEl.addEventListener('pointermove', e => {
   if (!bSwipe.active || isPaused) return;
   e.preventDefault();
   const dx = e.clientX - bSwipe.sx, dy = e.clientY - bSwipe.sy;
-  if (Math.abs(dx) > 30 || Math.abs(dy) > 30) {
-    if (Math.abs(dx) > Math.abs(dy)) {
-      movePlayerTo(dx > 0 ? 1 : -1, 0);
-    } else {
-      movePlayerTo(0, dy > 0 ? 1 : -1);
-    }
+  if (Math.abs(dx) > 28 || Math.abs(dy) > 28) {
+    if (Math.abs(dx) > Math.abs(dy)) movePlayerTo(dx > 0 ? 1 : -1, 0);
+    else movePlayerTo(0, dy > 0 ? 1 : -1);
     bSwipe.sx = e.clientX; bSwipe.sy = e.clientY;
   }
-}, {passive: false});
+}, {passive:false});
 bWrapEl.addEventListener('pointerup', () => bSwipe.active = false);
 
-// 合并区触摸 → 合并格子
 const mWrapEl = document.getElementById('merge-wrap');
-let mSwipe = {active: false, sx: 0, sy: 0};
-mWrapEl.addEventListener('pointerdown', e => {
-  mSwipe = {active: true, sx: e.clientX, sy: e.clientY};
-});
+let mSwipe = {active:false, sx:0, sy:0};
+mWrapEl.addEventListener('pointerdown', e => { mSwipe = {active:true, sx:e.clientX, sy:e.clientY}; });
 mWrapEl.addEventListener('pointermove', e => {
   if (!mSwipe.active || isPaused) return;
   e.preventDefault();
   const dx = e.clientX - mSwipe.sx, dy = e.clientY - mSwipe.sy;
-  if (Math.abs(dx) > 25 || Math.abs(dy) > 25) {
-    if (Math.abs(dx) > Math.abs(dy)) {
-      moveAll(dx > 0 ? 1 : -1, 0);
-    } else {
-      moveAll(0, dy > 0 ? 1 : -1);
-    }
+  if (Math.abs(dx) > 22 || Math.abs(dy) > 22) {
+    if (Math.abs(dx) > Math.abs(dy)) moveAll(dx > 0 ? 1 : -1, 0);
+    else moveAll(0, dy > 0 ? 1 : -1);
     mSwipe.sx = e.clientX; mSwipe.sy = e.clientY;
   }
-}, {passive: false});
+}, {passive:false});
 mWrapEl.addEventListener('pointerup', () => mSwipe.active = false);
 
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 //  玩家移动
-// ═══════════════════════════════════════════════
-const PLAYER_STEP = 40;
+// ═══════════════════════════════════════════════════════
+const PLAYER_STEP = 45;
 function movePlayerTo(dx, dy) {
   if (!player) return;
-  player.x = Math.max(20, Math.min(bW - 20, player.x + dx * PLAYER_STEP));
-  player.y = Math.max(20, Math.min(bH - 20, player.y + dy * PLAYER_STEP));
+  player.x = Math.max(22, Math.min(bW - 22, player.x + dx * PLAYER_STEP));
+  player.y = Math.max(22, Math.min(bH - 22, player.y + dy * PLAYER_STEP));
 }
 
 function dashPlayer() {
   if (!player || player.dashCooldown > 0) return;
-  // 找最近敌人，向反方向冲刺
   let nearest = null, minD = Infinity;
   enemies.forEach(e => {
     const d = Math.hypot(e.x - player.x, e.y - player.y);
@@ -1051,17 +890,17 @@ function dashPlayer() {
     ddx = Math.cos(ang) * PLAYER_STEP * 3;
     ddy = Math.sin(ang) * PLAYER_STEP * 3;
   }
-  player.x = Math.max(20, Math.min(bW - 20, player.x + ddx));
-  player.y = Math.max(20, Math.min(bH - 20, player.y + ddy));
+  player.x = Math.max(22, Math.min(bW - 22, player.x + ddx));
+  player.y = Math.max(22, Math.min(bH - 22, player.y + ddy));
   player.invincible = 600;
   player.dashCooldown = 2000;
   spawnDashParticles(player.x, player.y);
   showKillBanner('💨 冲刺！');
 }
 
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 //  HUD & 武器
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 function updateHUD() {
   document.getElementById('hs').textContent = score;
   document.getElementById('hbs').textContent = highScore || 0;
@@ -1071,20 +910,31 @@ function updateHUD() {
   const hpEl = document.getElementById('hhp');
   hpEl.textContent = hp;
   hpEl.style.color = hp > 50 ? '#00e676' : hp > 25 ? '#ffea00' : '#ff1744';
-  // HP 条
-  const bar = document.getElementById('hp-bar');
-  bar.style.width = (hp / player.maxHp * 100) + '%';
-  bar.style.background = hp > 50
-    ? 'linear-gradient(90deg,#00e676,#69f0ae)'
-    : hp > 25
-    ? 'linear-gradient(90deg,#ffea00,#ffd740)'
-    : 'linear-gradient(90deg,#ff1744,#ff6b6b)';
+}
+
+function updateAmmoBar() {
+  const pct = maxAmmo > 0 ? ammo / maxAmmo : 0;
+  const fill = document.getElementById('ammo-fill');
+  const wrap = document.getElementById('ammo-wrap');
+  fill.style.width = (pct * 100) + '%';
+
+  if (ammo === 0) {
+    fill.style.background = 'linear-gradient(90deg,#ff1744,#ff5252)';
+    wrap.className = 'low danger';
+    document.getElementById('noammo-hint').classList.add('show');
+  } else if (pct < 0.3) {
+    fill.style.background = 'linear-gradient(90deg,#ff9100,#ffab40)';
+    wrap.className = 'low';
+    document.getElementById('noammo-hint').classList.remove('show');
+  } else {
+    fill.style.background = 'linear-gradient(90deg,#00e676,#69f0ae)';
+    wrap.className = '';
+    document.getElementById('noammo-hint').classList.remove('show');
+  }
 }
 
 function updateWeapons() {
-  document.querySelectorAll('.wp').forEach(el => {
-    el.classList.remove('active', 'current');
-  });
+  document.querySelectorAll('.wp').forEach(el => el.classList.remove('active', 'current'));
   let w = 2;
   for (let i = 0; i < 8; i++) {
     if (highestTile >= w) {
@@ -1095,12 +945,14 @@ function updateWeapons() {
   }
   const curEl = document.getElementById('wp-' + highestTile);
   if (curEl) curEl.classList.add('current');
-  // 更新武器标签
-  const wInfo = WEAPONS[highestTile];
-  if (wInfo) {
-    document.getElementById('weapon-label').textContent =
-      wInfo.icon + ' 当前武器：' + wInfo.name + '  伤害 ' + wInfo.dmg;
-  }
+}
+
+function updateWeaponLabel() {
+  const w = WEAPONS[highestTile];
+  if (!w) return;
+  const ammoStr = ammo > 0 ? ` 弹药：${ammo}/${maxAmmo}` : ` ⚠️ 弹药耗尽！`;
+  document.getElementById('weapon-label').textContent =
+    `${w.icon} ${w.name}  单发伤害${w.dmg}  ${ammoStr}`;
 }
 
 function showKillBanner(text) {
@@ -1108,12 +960,12 @@ function showKillBanner(text) {
   el.textContent = text;
   el.style.opacity = '1';
   clearTimeout(el._t);
-  el._t = setTimeout(() => el.style.opacity = '0', 900);
+  el._t = setTimeout(() => el.style.opacity = '0', 1000);
 }
 
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 //  游戏结束 / 暂停
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 function endGame() {
   gameState = 'over';
   document.getElementById('pause-btn').style.display = 'none';
@@ -1126,10 +978,10 @@ function endGame() {
     <h1>💀 游戏结束</h1>
     <p class="sub">你坚持到了第 <b style="color:#ffd700">${wave}</b> 波</p>
     <div class="card" style="text-align:center">
-      <p style="font-size:2.5em;font-weight:900;color:#ffd700;margin:8px 0">${score}</p>
-      <p>最高武器 <b style="color:#00e676">${WEAPONS[highestTile]?.name || '手枪'}</b>
+      <p style="font-size:2.4em;font-weight:900;color:#ffd700;margin:6px 0">${score}</p>
+      <p>最高武器 <b style="color:#00e676">${w?.name || '手枪'}</b>
          &nbsp;|&nbsp; 击杀 <b style="color:#ff6b6b">${kills}</b></p>
-      ${score >= highScore ? '<p style="color:#ffd700;margin-top:8px">🏆 新纪录！</p>' : ''}
+      ${score >= highScore ? '<p style="color:#ffd700;margin-top:6px">🏆 新纪录！</p>' : ''}
     </div>
     <button class="btn" onclick="startGame()">🔄 再来一局</button>
   `;
@@ -1140,43 +992,28 @@ function togglePause() {
   if (gameState !== 'playing') return;
   isPaused = !isPaused;
   document.getElementById('pause-btn').textContent = isPaused ? '▶' : '⏸';
-  if (!isPaused) {
-    lastTime = performance.now();
-    requestAnimationFrame(loop);
-  }
+  if (!isPaused) { lastTime = performance.now(); requestAnimationFrame(loop); }
 }
 
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 //  主循环
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 function loop(t) {
   if (gameState !== 'playing') return;
   const dt = Math.min(t - lastTime, 50);
   lastTime = t;
-  if (!isPaused) {
-    update(dt);
-    drawBattle();
-    drawMerge();
-  }
+  if (!isPaused) { update(dt); drawBattle(); drawMerge(); }
   requestAnimationFrame(loop);
 }
 
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 //  启动
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 highScore = parseInt(localStorage.getItem('shooter2048_high') || '0');
-// 初始化画布尺寸（用于开始界面）
 window.addEventListener('load', () => {
-  initCanvases();
-  // 画一帧静态合并区
-  initGrid();
-  drawMerge();
+  initCanvases(); initGrid(); drawMerge();
 });
-window.addEventListener('resize', () => {
-  if (gameState === 'playing') {
-    initCanvases();
-  }
-});
+window.addEventListener('resize', () => { if (gameState === 'playing') initCanvases(); });
 </script>
 </body>
 </html>
