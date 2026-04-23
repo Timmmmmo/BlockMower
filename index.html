@@ -208,6 +208,192 @@ let comboCount, comboTimer, comboMultiplier;
 let hitCooldowns;
 
 // ═══════════════════════════════════════════════════════
+//  音效系统 (Web Audio API 合成)
+// ═══════════════════════════════════════════════════════
+let audioCtx = null;
+let soundEnabled = true;
+
+function initAudio() {
+  if (audioCtx) return;
+  try {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  } catch(e) {
+    console.log('Audio not supported');
+    soundEnabled = false;
+  }
+}
+
+function playSound(type, params = {}) {
+  if (!soundEnabled || !audioCtx) return;
+  
+  try {
+    const now = audioCtx.currentTime;
+    
+    switch(type) {
+      case 'shoot': {
+        // 射击音 - 短促的咔哒声
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(params.freq || 800, now);
+        osc.frequency.exponentialRampToValueAtTime(200, now + 0.08);
+        gain.gain.setValueAtTime(0.15, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+        osc.start(now);
+        osc.stop(now + 0.08);
+        break;
+      }
+      case 'hit': {
+        // 击中音 - 噗的一声
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(400, now);
+        osc.frequency.exponentialRampToValueAtTime(100, now + 0.1);
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+        osc.start(now);
+        osc.stop(now + 0.1);
+        break;
+      }
+      case 'kill': {
+        // 击杀音 - 爆炸声
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(150, now);
+        osc.frequency.exponentialRampToValueAtTime(30, now + 0.2);
+        gain.gain.setValueAtTime(0.25, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+        osc.start(now);
+        osc.stop(now + 0.2);
+        // 添加噪声层
+        const bufferSize = audioCtx.sampleRate * 0.15;
+        const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.3));
+        }
+        const noise = audioCtx.createBufferSource();
+        noise.buffer = buffer;
+        const noiseGain = audioCtx.createGain();
+        noise.connect(noiseGain);
+        noiseGain.connect(audioCtx.destination);
+        noiseGain.gain.setValueAtTime(0.15, now);
+        noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+        noise.start(now);
+        break;
+      }
+      case 'merge': {
+        // 合并音 - 清脆的叮声
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.type = 'sine';
+        const baseFreq = params.value ? 300 + Math.log2(params.value) * 100 : 400;
+        osc.frequency.setValueAtTime(baseFreq, now);
+        osc.frequency.setValueAtTime(baseFreq * 1.5, now + 0.05);
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+        osc.start(now);
+        osc.stop(now + 0.15);
+        break;
+      }
+      case 'upgrade': {
+        // 升级音 - 上升的音阶
+        [523, 659, 784, 1047].forEach((freq, i) => {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, now + i * 0.08);
+          gain.gain.setValueAtTime(0, now + i * 0.08);
+          gain.gain.linearRampToValueAtTime(0.15, now + i * 0.08 + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.08 + 0.15);
+          osc.start(now + i * 0.08);
+          osc.stop(now + i * 0.08 + 0.15);
+        });
+        break;
+      }
+      case 'hurt': {
+        // 受伤音 - 低沉的嗡声
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(200, now);
+        osc.frequency.exponentialRampToValueAtTime(80, now + 0.3);
+        gain.gain.setValueAtTime(0.25, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+        osc.start(now);
+        osc.stop(now + 0.3);
+        break;
+      }
+      case 'wave': {
+        // 波次音 - 号角声
+        [392, 523, 659].forEach((freq, i) => {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, now + i * 0.12);
+          gain.gain.setValueAtTime(0, now + i * 0.12);
+          gain.gain.linearRampToValueAtTime(0.2, now + i * 0.12 + 0.03);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.12 + 0.25);
+          osc.start(now + i * 0.12);
+          osc.stop(now + i * 0.12 + 0.25);
+        });
+        break;
+      }
+      case 'combo': {
+        // 连杀音 - 上升的叮声
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.type = 'sine';
+        const freq = 600 + params.combo * 50;
+        osc.frequency.setValueAtTime(freq, now);
+        osc.frequency.setValueAtTime(freq * 1.2, now + 0.05);
+        gain.gain.setValueAtTime(0.18, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+        osc.start(now);
+        osc.stop(now + 0.12);
+        break;
+      }
+      case 'dash': {
+        // 闪避音 - 嗖的一声
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(600, now);
+        osc.frequency.exponentialRampToValueAtTime(1200, now + 0.1);
+        osc.frequency.exponentialRampToValueAtTime(400, now + 0.2);
+        gain.gain.setValueAtTime(0.12, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+        osc.start(now);
+        osc.stop(now + 0.2);
+        break;
+      }
+    }
+  } catch(e) {
+    // 静默失败
+  }
+}
+
+// ═══════════════════════════════════════════════════════
 //  初始化
 // ═══════════════════════════════════════════════════════
 function initCanvases() {
@@ -271,6 +457,7 @@ function isGridStuck() {
 }
 
 function startGame() {
+  initAudio(); // 初始化音效系统
   initCanvases();
   initBgStars();
   initGrid();
@@ -353,6 +540,10 @@ function shoot() {
   shootTimer = 0;
   updateAmmoBar();
   updateWeaponLabel();
+  
+  // 射击音效 - 根据武器类型不同音调
+  const freq = 600 + highestTile * 2;
+  playSound('shoot', { freq });
 }
 
 function refillAmmo(tileVal, isUpgrade) {
@@ -386,6 +577,7 @@ function addKill(tier) {
     cd.classList.add('active');
     document.getElementById('combo-num').textContent = comboCount;
     document.getElementById('combo-mult').textContent = comboMultiplier > 1 ? `×${comboMultiplier}` : '';
+    playSound('combo', { combo: comboCount });
   }
   if (comboCount === 5) showKillBanner('🔥 5连杀！×3');
   else if (comboCount === 10) showKillBanner('💥 10连杀！！×5');
@@ -769,7 +961,7 @@ function update(dt) {
 
   // 波次推进
   waveTimer += dt;
-  if (waveTimer >= 22000) { waveTimer = 0; wave++; showKillBanner('🌊 第' + wave + '波来袭！'); }
+  if (waveTimer >= 22000) { waveTimer = 0; wave++; showKillBanner('🌊 第' + wave + '波来袭！'); playSound('wave'); }
 
   updateCombo(dt);
 
@@ -798,11 +990,13 @@ function update(dt) {
             }
           });
           spawnExplosion(b.x, b.y, b.color, b.aoeR);
+          playSound('hit');
         } else {
           e.hp -= b.dmg;
           if (b.slow) e.speed = Math.max(0.12, e.speed * 0.45);
           addFloatingText(e.x, e.y - e.size - 8, '-' + b.dmg, b.color, 13);
           spawnHitParticles(e.x, e.y, b.color);
+          playSound('hit');
         }
         hit = true; break;
       }
@@ -817,6 +1011,7 @@ function update(dt) {
       const e = enemies[i];
       spawnKillParticles(e.x, e.y, e.tier);
       addKill(e.tier);
+      playSound('kill');
       const earned = ((e.tier + 1) * 20 + wave * 5) * comboMultiplier;
       addFloatingText(e.x, e.y - e.size - 20, '+' + earned, '#ffd700', 15);
       hitCooldowns.delete(e.id);
@@ -842,6 +1037,7 @@ function update(dt) {
         hitCooldowns.set(e.id, now);
         screenShake = 8;
         spawnDamageParticles(player.x, player.y);
+        playSound('hurt');
         if (player.hp <= 0) endGame();
       }
     }
@@ -1138,6 +1334,7 @@ function moveAll(dx, dy) {
             mergeValue += grid[y][tx];
             score += grid[y][tx];
             spawnMergeBurst(tx, y, grid[y][tx]);
+            playSound('merge', { value: grid[y][tx] });
           } else {
             grid[y][tx] = grid[y][x];
           }
@@ -1165,6 +1362,7 @@ function moveAll(dx, dy) {
             mergeValue += grid[ty][x];
             score += grid[ty][x];
             spawnMergeBurst(x, ty, grid[ty][x]);
+            playSound('merge', { value: grid[ty][x] });
           } else {
             grid[ty][x] = grid[y][x];
           }
@@ -1187,6 +1385,7 @@ function moveAll(dx, dy) {
       document.getElementById('weapon-bar').classList.add('upgrade-flash');
       setTimeout(() => document.getElementById('weapon-bar').classList.remove('upgrade-flash'), 500);
       showKillBanner('⚡ 武器升级！' + (WEAPONS[highestMerged]?.icon || '') + ' 弹药已补满！');
+      playSound('upgrade');
     }
     if (isGridStuck()) {
       setTimeout(() => {
@@ -1289,6 +1488,7 @@ function dashPlayer() {
   player.dashCooldown = 2000;
   spawnDashParticles(player.x, player.y);
   showKillBanner('💨 闪避！');
+  playSound('dash');
 }
 
 // ═══════════════════════════════════════════════════════
